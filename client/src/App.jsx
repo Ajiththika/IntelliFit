@@ -11,6 +11,7 @@ import MarketplacePage from './pages/dashboard/MarketplacePage';
 import OrdersPage from './pages/dashboard/OrdersPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import PricingPage from './pages/PricingPage';
+import CustomizerPage from './pages/CustomizerPage';
 
 function App() {
   return (
@@ -22,6 +23,8 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/studio" element={<CustomizerPage />} />
+
 
             {/* Protected Dashboard Routes */}
             <Route path="/dashboard" element={<DashboardLayout />}>
