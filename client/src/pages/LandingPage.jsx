@@ -80,6 +80,64 @@ const LandingPage = () => {
                 </div>
             </section>
 
+            {/* Why Choose Us Section */}
+            <section className="py-20 bg-background">
+                <div className="container mx-auto px-4">
+                    <div className="flex flex-col md:flex-row items-center gap-12">
+                        <div className="flex-1">
+                            <div className="relative">
+                                {/* Abstract decorative elements for image area */}
+                                <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-2xl"></div>
+                                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl"></div>
+
+                                <img
+                                    src="https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=2525&auto=format&fit=crop"
+                                    alt="Tailor working on fabric"
+                                    className="rounded-2xl shadow-2xl relative z-10 w-full max-w-lg mx-auto transform hover:scale-[1.02] transition-transform duration-500"
+                                />
+
+                                {/* Floating badge */}
+                                <div className="absolute -bottom-6 -right-6 md:right-10 bg-white dark:bg-card p-4 rounded-xl shadow-xl border border-border z-20 flex items-center gap-3 animate-bounce-slow">
+                                    <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full">
+                                        <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Accuracy Rate</p>
+                                        <p className="text-xl font-bold text-foreground">99.8%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex-1">
+                            <h2 className="text-3xl md:text-4xl font-bold mb-6">Experience the Future of Tailoring</h2>
+                            <p className="text-lg text-muted-foreground mb-8">
+                                IntelliFit combines traditional craftsmanship with cutting-edge AI technology to deliver an unmatched custom clothing experience.
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <BenefitItem
+                                    title="AI-Powered Precision"
+                                    description="Get measured instantly with just your camera. No tape measure required."
+                                />
+                                <BenefitItem
+                                    title="Expert Craftsmanship"
+                                    description="Access a network of verified, top-rated professional tailors."
+                                />
+                                <BenefitItem
+                                    title="Perfect Fit Guarantee"
+                                    description="We promise your clothes will fit perfectly, or we'll make it right."
+                                />
+                                <BenefitItem
+                                    title="Seamless Process"
+                                    description="Track your order from measurement to delivery in real-time."
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* CTA Section */}
             <section className="py-20 bg-background">
                 <div className="container mx-auto px-4 text-center">
@@ -118,6 +176,18 @@ const FeatureCard = ({ icon, title, description }) => (
             {description}
         </p>
     </motion.div>
+);
+
+const BenefitItem = ({ title, description }) => (
+    <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-primary shrink-0" />
+            <h3 className="font-bold text-lg">{title}</h3>
+        </div>
+        <p className="text-muted-foreground text-sm pl-7">
+            {description}
+        </p>
+    </div>
 );
 
 export default LandingPage;
