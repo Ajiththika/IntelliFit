@@ -1,296 +1,368 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ShoppingBag, Info, ChevronRight, Layers, Scissors, Palette } from 'lucide-react';
+import { Check, ChevronRight, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/button';
 
-// --- DATA: Shirt Configuration Options ---
-const shirtOptions = {
-    fabrics: [
-        { id: 'egyptian_cotton', name: 'Egyptian Cotton', price: 0, image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=100&h=100&fit=crop' },
-        { id: 'linen_blend', name: 'Italian Linen', price: 25, image: 'https://images.unsplash.com/photo-1579631526487-73d8f28d8ed2?w=100&h=100&fit=crop' },
-        { id: 'oxford', name: 'Royal Oxford', price: 15, image: 'https://images.unsplash.com/photo-1620799140408-ed5341cd2431?w=100&h=100&fit=crop' },
-        { id: 'poplin', name: 'Stretch Poplin', price: 10, image: 'https://images.unsplash.com/photo-1618354691438-254dc88fea84?w=100&h=100&fit=crop' }
-    ],
-    collars: [
-        { id: 'spread', name: 'Spread Collar', desc: 'Modern, versatile choice' },
-        { id: 'classic', name: 'Classic Point', desc: 'Traditional business look' },
-        { id: 'button_down', name: 'Button Down', desc: 'Casual & Relaxed' },
-        { id: 'cutaway', name: 'Cutaway', desc: 'Bold, European style' },
-        { id: 'mandarin', name: 'Mandarin / Band', desc: 'Minimalist choice' }
-    ],
-    cuffs: [
-        { id: 'single_button', name: 'Single Button', desc: 'Standard barrel cuff' },
-        { id: 'double_button', name: 'Double Button', desc: 'Adjustable fit' },
-        { id: 'french', name: 'French Cuff', desc: 'Formal, requires cufflinks' },
-        { id: 'angled', name: 'Angled', desc: 'Modern angular cut' }
-    ],
-    plackets: [
-        { id: 'front', name: 'Front Placket', desc: 'Visible fused interlining' },
-        { id: 'french_front', name: 'No Placket', desc: 'Clean, seamless look' },
-        { id: 'hidden', name: 'Hidden Buttons', desc: 'Sleek & formal' }
-    ],
-    pockets: [
-        { id: 'none', name: 'No Pocket', desc: 'Cleanest aesthetic' },
-        { id: 'one_round', name: 'One Round', desc: 'Classic left chest' },
-        { id: 'one_angled', name: 'One Angled', desc: 'Modern utility' }
-    ],
-    fits: [
-        { id: 'slim', name: 'Slim Fit', desc: 'Closer to body' },
-        { id: 'tailored', name: 'Tailored Fit', desc: 'Balanced comfort' },
-        { id: 'classic', name: 'Classic Fit', desc: 'Generous room' }
-    ]
-};
-
-// --- DATA: Colors ---
+// --- SHARED DATA ---
 const colors = [
     { id: 'white', name: 'White', hex: '#ffffff' },
-    { id: 'sky_blue', name: 'Sky Blue', hex: '#87CEEB' },
-    { id: 'navy', name: 'Navy', hex: '#000080' },
     { id: 'black', name: 'Black', hex: '#000000' },
-    { id: 'pink', name: 'Pale Pink', hex: '#FFC0CB' },
-    { id: 'grey', name: 'Charcoal', hex: '#36454F' }
+    { id: 'navy', name: 'Navy', hex: '#000080' },
+    { id: 'burgundy', name: 'Burgundy', hex: '#800020' },
+    { id: 'emerald', name: 'Emerald', hex: '#50C878' },
+    { id: 'gold', name: 'Gold', hex: '#FFD700' },
+    { id: 'royal_blue', name: 'Royal Blue', hex: '#4169E1' },
+    { id: 'beige', name: 'Beige', hex: '#F5F5DC' },
 ];
 
+const fabrics = [
+    { id: 'egyptian_cotton', name: 'Egyptian Cotton', price: 0, desc: 'Breathable & soft' },
+    { id: 'linen', name: 'Premium Linen', price: 25, desc: 'Lightweight & airy' },
+    { id: 'silk', name: 'Pure Silk', price: 60, desc: 'Luxurious & smooth' },
+    { id: 'velvet', name: 'Velvet', price: 45, desc: 'Rich texture' },
+    { id: 'wool_blend', name: 'Wool Blend', price: 35, desc: 'Warm & durable' },
+];
+
+const fits = [
+    { id: 'slim', name: 'Slim Fit', desc: 'Closer to body' },
+    { id: 'regular', name: 'Regular Fit', desc: 'Classic comfort' },
+    { id: 'relaxed', name: 'Relaxed Fit', desc: 'Loose & breezy' },
+];
+
+// --- CATEGORY SPECIFIC OPTIONS ---
+const categoryOptions = {
+    // MEN
+    shirt: {
+        basePrice: 89,
+        sections: [
+            { id: 'fit', label: 'Fit', type: 'select', options: fits },
+            { id: 'fabric', label: 'Fabric', type: 'fabric', options: fabrics },
+            { id: 'color', label: 'Color', type: 'color', options: colors },
+            {
+                id: 'collar', label: 'Collar', type: 'select', options: [
+                    { id: 'spread', name: 'Spread', desc: 'Modern choice' },
+                    { id: 'classic', name: 'Classic', desc: 'Timeless style' },
+                    { id: 'button_down', name: 'Button Down', desc: 'Casual look' },
+                ]
+            },
+            {
+                id: 'cuff', label: 'Cuff', type: 'select', options: [
+                    { id: 'single_button', name: 'Single Button', desc: 'Standard' },
+                    { id: 'double_button', name: 'Double Button', desc: 'Adjustable' },
+                    { id: 'french', name: 'French Cuff', desc: 'Formal' },
+                ]
+            },
+            {
+                id: 'pocket', label: 'Pocket', type: 'select', options: [
+                    { id: 'none', name: 'No Pocket', desc: 'Clean look' },
+                    { id: 'one', name: 'One Pocket', desc: 'Classic utility' },
+                ]
+            }
+        ]
+    },
+    suit: {
+        basePrice: 399,
+        sections: [
+            { id: 'fit', label: 'Fit', type: 'select', options: fits },
+            {
+                id: 'fabric', label: 'Fabric', type: 'fabric', options: [
+                    { id: 'wool_110', name: 'Super 110s Wool', price: 0, desc: 'All-season' },
+                    { id: 'wool_130', name: 'Super 130s Wool', price: 100, desc: 'Finer texture' },
+                    { id: 'linen_blend', name: 'Linen Blend', price: 50, desc: 'Summer suits' },
+                ]
+            },
+            { id: 'color', label: 'Color', type: 'color', options: colors },
+            {
+                id: 'lapel', label: 'Lapel', type: 'select', options: [
+                    { id: 'notch', name: 'Notch Lapel', desc: 'Standard business' },
+                    { id: 'peak', name: 'Peak Lapel', desc: 'More formal' },
+                    { id: 'shawl', name: 'Shawl Collar', desc: 'Tuxedo style' },
+                ]
+            },
+            {
+                id: 'vents', label: 'Vents', type: 'select', options: [
+                    { id: 'double', name: 'Double Vent', desc: 'Modern British' },
+                    { id: 'single', name: 'Single Vent', desc: 'American classic' },
+                    { id: 'no_vent', name: 'No Vent', desc: 'Italian slim' },
+                ]
+            }
+        ]
+    },
+    // WOMEN
+    dress: {
+        basePrice: 129,
+        sections: [
+            { id: 'fit', label: 'Fit', type: 'select', options: fits },
+            { id: 'fabric', label: 'Fabric', type: 'fabric', options: fabrics },
+            { id: 'color', label: 'Color', type: 'color', options: colors },
+            {
+                id: 'length', label: 'Length', type: 'select', options: [
+                    { id: 'mini', name: 'Mini', desc: 'Above knee' },
+                    { id: 'midi', name: 'Midi', desc: 'Below knee' },
+                    { id: 'maxi', name: 'Maxi', desc: 'Floor length' },
+                ]
+            },
+            {
+                id: 'neckline', label: 'Neckline', type: 'select', options: [
+                    { id: 'v_neck', name: 'V-Neck', desc: 'Elongating' },
+                    { id: 'round', name: 'Round Neck', desc: 'Classic' },
+                    { id: 'boat', name: 'Boat Neck', desc: 'Elegant' },
+                    { id: 'square', name: 'Square Neck', desc: 'Vintage style' },
+                ]
+            },
+            {
+                id: 'sleeve', label: 'Sleeve', type: 'select', options: [
+                    { id: 'sleeveless', name: 'Sleeveless', desc: 'Summer ready' },
+                    { id: 'cap', name: 'Cap Sleeve', desc: 'Cover shoulders' },
+                    { id: 'short', name: 'Short Sleeve', desc: 'Classic T' },
+                    { id: 'three_quarter', name: '3/4 Sleeve', desc: 'Versatile' },
+                    { id: 'long', name: 'Long Sleeve', desc: 'Full coverage' },
+                ]
+            }
+        ]
+    },
+    blouse: {
+        basePrice: 79,
+        sections: [
+            { id: 'fit', label: 'Fit', type: 'select', options: fits },
+            { id: 'fabric', label: 'Fabric', type: 'fabric', options: fabrics },
+            { id: 'color', label: 'Color', type: 'color', options: colors },
+            {
+                id: 'neckline', label: 'Neckline', type: 'select', options: [
+                    { id: 'collar', name: 'Collared', desc: 'Workwear' },
+                    { id: 'v_neck', name: 'V-Neck', desc: 'Casual' },
+                    { id: 'bow', name: 'Pussy Bow', desc: 'Elegant' },
+                ]
+            },
+            {
+                id: 'sleeve', label: 'Sleeve', type: 'select', options: [
+                    { id: 'sleeveless', name: 'Sleeveless', desc: 'Cool' },
+                    { id: 'puff', name: 'Puff Sleeve', desc: 'Trendy' },
+                    { id: 'long_cuffed', name: 'Long Cuffed', desc: 'Formal' },
+                ]
+            }
+        ]
+    },
+    skirt: {
+        basePrice: 69,
+        sections: [
+            { id: 'fabric', label: 'Fabric', type: 'fabric', options: fabrics },
+            { id: 'color', label: 'Color', type: 'color', options: colors },
+            {
+                id: 'style', label: 'Style', type: 'select', options: [
+                    { id: 'pencil', name: 'Pencil', desc: 'Fitted' },
+                    { id: 'a_line', name: 'A-Line', desc: 'Flattering' },
+                    { id: 'pleated', name: 'Pleated', desc: 'Classic flow' },
+                    { id: 'wrap', name: 'Wrap', desc: 'Adjustable' },
+                ]
+            },
+            {
+                id: 'length', label: 'Length', type: 'select', options: [
+                    { id: 'mini', name: 'Mini', desc: 'Mid-thigh' },
+                    { id: 'knee', name: 'Knee Length', desc: 'Professional' },
+                    { id: 'mid_calf', name: 'Mid-Calf', desc: 'Modern' },
+                    { id: 'maxi', name: 'Maxi', desc: 'Ankle length' },
+                ]
+            }
+        ]
+    }
+};
+
+// Default fallback if category not found
+const defaultSections = categoryOptions.shirt.sections;
 
 const Configurator = ({ selections }) => {
-    const [activeTab, setActiveTab] = useState('style'); // style, fabric, measurements
-    const [config, setConfig] = useState({
-        fabric: shirtOptions.fabrics[0],
-        color: colors[0],
-        collar: shirtOptions.collars[0],
-        cuff: shirtOptions.cuffs[0],
-        placket: shirtOptions.plackets[0],
-        pocket: shirtOptions.pockets[0],
-        fit: shirtOptions.fits[0]
-    });
+    // Get configuration based on selected category (passed from parent)
+    // Selections.category is now the full object (id, label, image) due to previous fix
+    const categoryKey = selections.category?.id || 'shirt';
+    const activeCategory = categoryOptions[categoryKey] || categoryOptions.shirt;
+    const activeSections = activeCategory.sections || defaultSections;
 
-    const calculateTotal = () => {
-        let base = 89;
-        return base + config.fabric.price;
+    // Initialize state with default choices for sections
+    const [config, setConfig] = useState({});
+    const [expandedSection, setExpandedSection] = useState(null); // ID of currently expanded section
+
+    // Hydrate config on mount/category change
+    useEffect(() => {
+        const initialConfig = {};
+        activeSections.forEach(section => {
+            initialConfig[section.id] = section.options[0];
+        });
+        setConfig(initialConfig);
+        setExpandedSection(activeSections[0].id); // Auto-expand first item
+    }, [categoryKey]);
+
+    const handleSelect = (sectionId, option) => {
+        setConfig(prev => ({ ...prev, [sectionId]: option }));
+        // Close current section after selection (optional interaction style)
+        // setExpandedSection(null); 
     };
 
-    const tabs = [
-        { id: 'style', label: 'Style & Fit', icon: Scissors },
-        { id: 'fabric', label: 'Fabric & Color', icon: Palette },
-        { id: 'summary', label: 'Summary', icon: Layers },
-    ];
+    const toggleSection = (id) => {
+        if (expandedSection === id) {
+            setExpandedSection(null);
+        } else {
+            setExpandedSection(id);
+        }
+    };
+
+    const calculateTotal = () => {
+        let total = activeCategory.basePrice || 0;
+        Object.values(config).forEach(val => {
+            if (val && val.price) total += val.price;
+        });
+        return total;
+    };
 
     return (
-        <div className="flex flex-col xl:flex-row gap-8 min-h-[80vh]">
-            {/* LEFT COLUMN: VISUALIZER */}
-            <div className="w-full xl:w-5/12 space-y-6">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 min-h-[80vh]">
+            {/* LEFT: VISUALIZER */}
+            <div className="w-full lg:w-1/2">
                 <div className="sticky top-24">
-                    <div className="relative aspect-[3/4] bg-muted/20 rounded-2xl overflow-hidden border border-border/50 shadow-inner group">
-                        {/* Dynamic Background based on color choice (Mock representation) */}
-                        <div
-                            className="absolute inset-0 transition-colors duration-500 opacity-20"
-                            style={{ backgroundColor: config.color.hex }}
-                        />
+                    <div className="relative aspect-[3/4] bg-[#fdfdfd] rounded-sm overflow-hidden shadow-sm">
+                        {/* Dynamic Background tint based on color */}
+                        {config.color && (
+                            <div
+                                className="absolute inset-0 transition-colors duration-500 opacity-10 mix-blend-multiply"
+                                style={{ backgroundColor: config.color.hex }}
+                            />
+                        )}
 
-                        {/* Main Garment Image (Placeholder for true 3D) */}
                         <img
                             src={selections.category?.image || "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=1000&auto=format&fit=crop"}
-                            alt={selections.category?.label || "Shirt Preview"}
-                            className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-90"
+                            alt={selections.category?.label || "Garment"}
+                            className="absolute inset-0 w-full h-full object-cover"
                         />
 
-                        {/* Interactive Markers (Demo) */}
-                        <div className="absolute top-[15%] left-[50%] -translate-x-1/2 cursor-pointer group/marker">
-                            <div className="w-4 h-4 bg-white rounded-full shadow-lg ring-2 ring-primary animate-pulse relative z-10"></div>
-                            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/marker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                {config.collar.name}
-                            </div>
-                        </div>
-
-                        <div className="absolute right-[20%] bottom-[30%] cursor-pointer group/marker">
-                            <div className="w-4 h-4 bg-white rounded-full shadow-lg ring-2 ring-primary animate-pulse relative z-10"></div>
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/marker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                {config.cuff.name}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 p-4 bg-card rounded-xl border border-border shadow-sm">
-                        <h3 className="font-semibold text-lg border-b pb-2 mb-3">Configuration Summary</h3>
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Fabric</span>
-                                <span className="font-medium">{config.fabric.name}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Collar</span>
-                                <span className="font-medium">{config.collar.name}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Cuff</span>
-                                <span className="font-medium">{config.cuff.name}</span>
-                            </div>
-                        </div>
+                        {/* Overlay Gradient for premium look */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
                     </div>
                 </div>
             </div>
 
-            {/* RIGHT COLUMN: CONTROLS */}
-            <div className="flex-1 w-full bg-background">
-                {/* Custom Tabs */}
-                <div className="flex gap-2 overflow-x-auto pb-2 mb-8 border-b">
-                    {tabs.map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-t-lg font-medium transition-all relative ${activeTab === tab.id ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground'}`}
-                        >
-                            <tab.icon className="w-4 h-4" />
-                            {activeTab === tab.id && (
-                                <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-                            )}
-                            {tab.label}
-                        </button>
-                    ))}
+            {/* RIGHT: CUSTOMIZER OPTIONS */}
+            <div className="w-full lg:w-1/2 flex flex-col">
+                <div className="mb-8">
+                    <h2 className="text-2xl font-serif font-medium mb-2">Customizer</h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                        Choose from our carefully curated selection of fabrics and then customize the {selections.category?.label?.toLowerCase() || 'garment'} to your preference.
+                        <span className="underline ml-1 cursor-pointer">The garment will be cut to your shape.</span>
+                    </p>
                 </div>
 
-                <div className="min-h-[500px]">
-                    <AnimatePresence mode="wait">
-                        {activeTab === 'style' && (
-                            <motion.div
-                                key="style"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="space-y-8"
-                            >
-                                <OptionGroup title="Collar Style" options={shirtOptions.collars} selected={config.collar} onSelect={(v) => setConfig({ ...config, collar: v })} />
-                                <OptionGroup title="Cuff Style" options={shirtOptions.cuffs} selected={config.cuff} onSelect={(v) => setConfig({ ...config, cuff: v })} />
-                                <OptionGroup title="Front Placket" options={shirtOptions.plackets} selected={config.placket} onSelect={(v) => setConfig({ ...config, placket: v })} />
-                                <OptionGroup title="Pocket" options={shirtOptions.pockets} selected={config.pocket} onSelect={(v) => setConfig({ ...config, pocket: v })} />
-                                <OptionGroup title="Fit Preference" options={shirtOptions.fits} selected={config.fit} onSelect={(v) => setConfig({ ...config, fit: v })} />
-                            </motion.div>
-                        )}
+                <div className="flex-1 space-y-0 border-t border-border">
+                    {activeSections.map((section) => {
+                        const isExpanded = expandedSection === section.id;
+                        const selectedOption = config[section.id];
 
-                        {activeTab === 'fabric' && (
-                            <motion.div
-                                key="fabric"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="space-y-8"
-                            >
-                                <div>
-                                    <h3 className="text-lg font-medium mb-4">Select Color</h3>
-                                    <div className="flex flex-wrap gap-3">
-                                        {colors.map(color => (
-                                            <button
-                                                key={color.id}
-                                                onClick={() => setConfig({ ...config, color })}
-                                                className={`w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center ${config.color.id === color.id ? 'border-primary ring-2 ring-primary/20' : 'border-border'}`}
-                                                style={{ backgroundColor: color.hex }}
-                                                title={color.name}
-                                            >
-                                                {config.color.id === color.id && <Check className={`w-5 h-5 ${['white', 'sky_blue', 'pink'].includes(color.id) ? 'text-black' : 'text-white'}`} />}
-                                            </button>
-                                        ))}
+                        return (
+                            <div key={section.id} className="border-b border-border">
+                                {/* Header Row */}
+                                <div
+                                    onClick={() => toggleSection(section.id)}
+                                    className="flex items-center justify-between py-5 cursor-pointer hover:bg-muted/30 transition-colors group"
+                                >
+                                    <span className="font-medium text-sm text-foreground/80 group-hover:text-foreground">
+                                        {section.label}
+                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs text-muted-foreground">
+                                            {selectedOption ? selectedOption.name : 'Make a selection'}
+                                        </span>
+                                        <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
                                     </div>
-                                    <p className="mt-2 text-sm text-muted-foreground">Selected: {config.color.name}</p>
                                 </div>
 
-                                <div>
-                                    <h3 className="text-lg font-medium mb-4">Fabric Type</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {shirtOptions.fabrics.map(fabric => (
-                                            <div
-                                                key={fabric.id}
-                                                onClick={() => setConfig({ ...config, fabric })}
-                                                className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${config.fabric.id === fabric.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
-                                            >
-                                                <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 bg-muted">
-                                                    <img src={fabric.image} alt={fabric.name} className="w-full h-full object-cover" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="font-semibold">{fabric.name}</div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {fabric.price > 0 ? `+$${fabric.price}` : 'Included'}
+                                {/* Expanded Content */}
+                                <AnimatePresence>
+                                    {isExpanded && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="pb-6 pt-2">
+                                                {/* OPTION RENDERER BASED ON TYPE */}
+
+                                                {/* TYPE: COLOR or FABRIC (Visual Grid) */}
+                                                {(section.type === 'color' || section.type === 'fabric') && (
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                        {section.options.map(opt => (
+                                                            <div
+                                                                key={opt.id}
+                                                                onClick={() => handleSelect(section.id, opt)}
+                                                                className={`
+                                                                    cursor-pointer p-3 rounded border transition-all flex items-center gap-3
+                                                                    ${selectedOption?.id === opt.id ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border hover:border-primary/40'}
+                                                                `}
+                                                            >
+                                                                {/* Visual Preview */}
+                                                                {section.type === 'color' && (
+                                                                    <div className="w-6 h-6 rounded-full border border-border shadow-sm shrink-0" style={{ backgroundColor: opt.hex }} />
+                                                                )}
+                                                                {section.type === 'fabric' && (
+                                                                    <div className="w-8 h-8 rounded bg-muted shrink-0 text-[10px] flex items-center justify-center text-muted-foreground font-mono">
+                                                                        TEX
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-medium truncate">{opt.name}</p>
+                                                                    {opt.price > 0 && <p className="text-xs text-muted-foreground">+${opt.price}</p>}
+                                                                </div>
+                                                                {selectedOption?.id === opt.id && <Check className="w-4 h-4 text-primary shrink-0" />}
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                </div>
-                                                {config.fabric.id === fabric.id && <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center"><Check className="w-3 h-3" /></div>}
+                                                )}
+
+                                                {/* TYPE: SELECT (Text Cards) */}
+                                                {section.type === 'select' && (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        {section.options.map(opt => (
+                                                            <div
+                                                                key={opt.id}
+                                                                onClick={() => handleSelect(section.id, opt)}
+                                                                className={`
+                                                                    cursor-pointer px-4 py-3 rounded border text-sm transition-all
+                                                                    ${selectedOption?.id === opt.id ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-border hover:border-primary/40 text-muted-foreground'}
+                                                                `}
+                                                            >
+                                                                <div className="flex justify-between items-center mb-0.5">
+                                                                    <span>{opt.name}</span>
+                                                                    {selectedOption?.id === opt.id && <Check className="w-3.5 h-3.5" />}
+                                                                </div>
+                                                                {opt.desc && <p className="text-xs opacity-70 font-normal">{opt.desc}</p>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-                        {activeTab === 'summary' && (
-                            <motion.div
-                                key="summary"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="space-y-6"
-                            >
-                                <div className="bg-primary/5 p-8 rounded-2xl border border-primary/20 text-center">
-                                    <h2 className="text-3xl font-bold mb-2">${calculateTotal()}</h2>
-                                    <p className="text-muted-foreground">Total Estimated Price</p>
-                                </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        );
+                    })}
+                </div>
 
-                                <div className="space-y-4">
-                                    <h3 className="font-semibold text-lg">Order Details</h3>
-                                    <SummaryItem label="Garment" value={selections.category?.label || "Custom Men's Shirt"} />
-                                    <SummaryItem label="Fabric" value={config.fabric.name} price={config.fabric.price} />
-                                    <SummaryItem label="Color" value={config.color.name} />
-                                    <SummaryItem label="Collar" value={config.collar.name} />
-                                    <SummaryItem label="Cuff" value={config.cuff.name} />
-                                    <SummaryItem label="Fit" value={config.fit.name} />
-                                </div>
-
-                                <div className="pt-8">
-                                    <Button size="lg" className="w-full text-lg h-12">
-                                        Add to Cart & Save Specs
-                                    </Button>
-                                    <p className="text-center text-xs text-muted-foreground mt-4">
-                                        Free shipping on orders over $200. Guaranteed fit.
-                                    </p>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                {/* Footer / Total */}
+                <div className="mt-8 pt-6 border-t border-border flex flex-col gap-4">
+                    <div className="flex justify-between items-end">
+                        <span className="text-muted-foreground">Quantity: 1</span>
+                        <div className="text-right">
+                            <p className="text-2xl font-serif font-medium">${calculateTotal()}</p>
+                        </div>
+                    </div>
+                    <Button size="lg" className="w-full text-base py-6 bg-[#6B7280] hover:bg-[#4B5563] text-white">
+                        {config.fabric ? `ADD TO BASKET — $${calculateTotal()}` : 'ADD TO BASKET'}
+                    </Button>
                 </div>
             </div>
         </div>
     );
 };
-
-// Helper Components
-const OptionGroup = ({ title, options, selected, onSelect }) => (
-    <div>
-        <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-lg font-medium">{title}</h3>
-            <Info className="w-4 h-4 text-muted-foreground/50 hover:text-primary cursor-help" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {options.map(opt => (
-                <div
-                    key={opt.id}
-                    onClick={() => onSelect(opt)}
-                    className={`group relative p-4 rounded-lg border-2 text-left cursor-pointer transition-all hover:shadow-md ${selected.id === opt.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
-                >
-                    <div className="font-semibold mb-1 flex items-center justify-between">
-                        {opt.name}
-                        {selected.id === opt.id && <Check className="w-4 h-4 text-primary" />}
-                    </div>
-                    <p className="text-xs text-muted-foreground">{opt.desc}</p>
-                </div>
-            ))}
-        </div>
-    </div>
-);
-
-const SummaryItem = ({ label, value, price }) => (
-    <div className="flex justify-between items-center py-3 border-b border-border/50 last:border-0 hover:bg-muted/30 px-2 rounded transition-colors">
-        <span className="text-muted-foreground">{label}</span>
-        <div className="flex items-center gap-2">
-            <span className="font-medium">{value}</span>
-            {price > 0 && <span className="text-xs bg-secondary px-1.5 py-0.5 rounded text-secondary-foreground">+${price}</span>}
-        </div>
-    </div>
-);
 
 export default Configurator;
