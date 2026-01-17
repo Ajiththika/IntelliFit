@@ -89,8 +89,8 @@ const Configurator = ({ selections }) => {
 
                         {/* Main Garment Image (Placeholder for true 3D) */}
                         <img
-                            src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=1000&auto=format&fit=crop"
-                            alt="Shirt Preview"
+                            src={selections.category?.image || "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=1000&auto=format&fit=crop"}
+                            alt={selections.category?.label || "Shirt Preview"}
                             className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-90"
                         />
 
@@ -233,7 +233,7 @@ const Configurator = ({ selections }) => {
 
                                 <div className="space-y-4">
                                     <h3 className="font-semibold text-lg">Order Details</h3>
-                                    <SummaryItem label="Garment" value="Custom Men's Shirt" />
+                                    <SummaryItem label="Garment" value={selections.category?.label || "Custom Men's Shirt"} />
                                     <SummaryItem label="Fabric" value={config.fabric.name} price={config.fabric.price} />
                                     <SummaryItem label="Color" value={config.color.name} />
                                     <SummaryItem label="Collar" value={config.collar.name} />

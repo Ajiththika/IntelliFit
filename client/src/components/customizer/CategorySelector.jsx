@@ -4,15 +4,15 @@ import { Shirt, Scissors } from 'lucide-react'; // Using standard icons for now
 const categories = {
     men: [
         { id: 'shirt', label: 'Custom Shirt', image: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&q=80&w=300&h=400' },
-        { id: 'suit', label: 'Tailored Suit', image: 'https://images.unsplash.com/photo-1594938298603-c8148c47e356?auto=format&fit=crop&q=80&w=300&h=400' },
-        { id: 'pant', label: 'Trousers', image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=300&h=400' },
-        { id: 'traditional', label: 'Traditional', image: 'https://images.unsplash.com/photo-1597983073493-88cd35cf93b0?auto=format&fit=crop&q=80&w=300&h=400' }
+        { id: 'suit', label: 'Tailored Suit', image: 'https://images.unsplash.com/photo-1593030761757-71bd90dbe78b?auto=format&fit=crop&q=80&w=300&h=400' },
+        { id: 'pant', label: 'Trousers', image: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&q=80&w=300&h=400' },
+        { id: 'traditional', label: 'Traditional', image: 'https://images.unsplash.com/photo-1589810635657-232948472d98?auto=format&fit=crop&q=80&w=300&h=400' }
     ],
     women: [
         { id: 'dress', label: 'Custom Dress', image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=300&h=400' },
         { id: 'blouse', label: 'Blouse', image: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?auto=format&fit=crop&q=80&w=300&h=400' },
         { id: 'skirt', label: 'Skirt', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?auto=format&fit=crop&q=80&w=300&h=400' },
-        { id: 'traditional', label: 'Traditional', image: 'https://images.unsplash.com/photo-1583391733958-3d526bd476ad?auto=format&fit=crop&q=80&w=300&h=400' }
+        { id: 'traditional', label: 'Traditional', image: 'https://plus.unsplash.com/premium_photo-1664202526559-e21e9c0fb46a?auto=format&fit=crop&q=80&w=300&h=400' }
     ]
 };
 
@@ -28,7 +28,7 @@ const CategorySelector = ({ gender, onSelect }) => {
                     <CategoryCard
                         key={item.id}
                         item={item}
-                        onClick={() => onSelect(item.id)}
+                        onClick={() => onSelect(item)}
                     />
                 ))}
             </div>
