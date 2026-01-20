@@ -3,23 +3,38 @@ import { Star, MapPin, Scissors } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
 import CreateOrderDialog from './CreateOrderDialog';
+import PortfolioGalleryDialog from './PortfolioGalleryDialog';
 
 const TailorCard = ({ tailor }) => {
     const [showOrderDialog, setShowOrderDialog] = useState(false);
+    const [showPortfolio, setShowPortfolio] = useState(false);
 
     return (
         <>
             <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:shadow-md">
                 <div
                     className="aspect-[4/3] overflow-hidden bg-muted cursor-pointer"
-                    onClick={() => setShowOrderDialog(true)}
+                    onClick={() => {
+                        if (tailor.portfolioImages && tailor.portfolioImages.length > 0) {
+                            setShowPortfolio(true);
+                        } else {
+                            setShowOrderDialog(true);
+                        }
+                    }}
                 >
                     {tailor.portfolioImages && tailor.portfolioImages[0] ? (
-                        <img
-                            src={tailor.portfolioImages[0]}
-                            alt={tailor.businessName}
-                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                        />
+                        <>
+                            <img
+                                src={tailor.portfolioImages[0]}
+                                alt={tailor.businessName}
+                                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                            />
+                            {tailor.portfolioImages.length > 1 && (
+                                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
+                                    +{tailor.portfolioImages.length - 1} more
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <div className="flex h-full w-full items-center justify-center bg-secondary/30 text-muted-foreground group-hover:bg-secondary/50 transition-colors">
                             <Scissors className="h-12 w-12 opacity-20" />
@@ -62,6 +77,9 @@ const TailorCard = ({ tailor }) => {
                     <div className="mt-auto pt-4 flex items-center justify-between gap-2">
                         <span className="font-medium text-sm">{tailor.pricing || 'Contact for price'}</span>
                         <div className="flex gap-2">
+                            {tailor.portfolioImages && tailor.portfolioImages.length > 0 && (
+                                <Button size="sm" variant="outline" onClick={() => setShowPortfolio(true)}>View Work</Button>
+                            )}
                             <Button size="sm" variant="default" onClick={() => setShowOrderDialog(true)}>Book Now</Button>
                         </div>
                     </div>
@@ -73,6 +91,14 @@ const TailorCard = ({ tailor }) => {
                     tailorId={tailor._id}
                     tailorName={tailor.businessName}
                     onClose={() => setShowOrderDialog(false)}
+                /> // Restore closing tag
+            )}
+
+            {showPortfolio && (
+                <PortfolioGalleryDialog
+                    images={tailor.portfolioImages}
+                    tailorName={tailor.businessName}
+                    onClose={() => setShowPortfolio(false)}
                 />
             )}
         </>

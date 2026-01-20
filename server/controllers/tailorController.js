@@ -11,17 +11,19 @@ const createOrUpdateProfile = async (req, res) => {
         specializations,
         experienceYears,
         location,
-        pricing
+        pricing,
+        portfolioImages
     } = req.body;
 
     const profileFields = {
         user: req.user._id,
         businessName,
         bio,
-        specializations: specializations ? specializations.split(',').map(s => s.trim()) : [],
+        specializations: specializations ? (Array.isArray(specializations) ? specializations : specializations.split(',').map(s => s.trim())) : [],
         experienceYears,
         location,
-        pricing
+        pricing,
+        portfolioImages
     };
 
     let profile = await TailorProfile.findOne({ user: req.user._id });
