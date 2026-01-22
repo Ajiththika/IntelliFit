@@ -10,7 +10,6 @@ const RegisterPage = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('user'); // Default to customer
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -22,7 +21,7 @@ const RegisterPage = () => {
         setError('');
         setLoading(true);
         try {
-            await register(name, email, password, role);
+            await register(name, email, password);
             navigate('/');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to register');
@@ -83,24 +82,6 @@ const RegisterPage = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                             />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>I am a...</Label>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div
-                                    className={`border rounded-lg p-3 text-center cursor-pointer transition-all ${role === 'user' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-input hover:border-primary/50'}`}
-                                    onClick={() => setRole('user')}
-                                >
-                                    <span className="font-medium text-sm">Customer</span>
-                                </div>
-                                <div
-                                    className={`border rounded-lg p-3 text-center cursor-pointer transition-all ${role === 'tailor' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-input hover:border-primary/50'}`}
-                                    onClick={() => setRole('tailor')}
-                                >
-                                    <span className="font-medium text-sm">Tailor</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
 

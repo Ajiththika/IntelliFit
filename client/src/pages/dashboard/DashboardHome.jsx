@@ -11,18 +11,21 @@ const DashboardHome = () => {
     const { user } = useAuth();
     const [stats, setStats] = useState(null);
     const [users, setUsers] = useState([]);
+    const [roleRequests, setRoleRequests] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (user?.role === 'admin') {
+        if (['admin', 'superadmin'].includes(user?.role)) {
             const fetchData = async () => {
                 try {
-                    const [statsRes, usersRes] = await Promise.all([
+                    const [statsRes, usersRes, requestsRes] = await Promise.all([
                         API.get('/admin/stats'),
-                        API.get('/admin/users')
+                        API.get('/admin/users'),
+                        API.get('/admin/role-requests')
                     ]);
                     setStats(statsRes.data);
                     setUsers(usersRes.data);
+                    setRoleRequests(requestsRes.data);
                 } catch (error) {
                     console.error("Failed to fetch admin data", error);
                 } finally {
@@ -33,7 +36,18 @@ const DashboardHome = () => {
         }
     }, [user]);
 
-    if (user?.role === 'admin') {
+    const handleRoleAction = async (userId, action) => {
+        try {
+            await API.put(`/admin/role-requests/${userId}`, { status: action });
+            setRoleRequests(prev => prev.filter(u => u._id !== userId));
+            // Optionally refresh users list if approved
+        } catch (error) {
+            console.error("Failed to update role", error);
+            alert("Failed to update role status");
+        }
+    };
+
+    if (['admin', 'superadmin'].includes(user?.role)) {
         if (loading) return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
 
         return (
@@ -46,6 +60,29 @@ const DashboardHome = () => {
                     <AdminStatsCard title="Total Orders" value={stats?.totalOrders} icon={ShoppingBag} description="All time orders" />
                     <AdminStatsCard title="Total Revenue" value={`$${stats?.totalRevenue}`} icon={TrendingUp} description="Platform logic needed" />
                 </div>
+
+                {/* Role Requests */}
+                {roleRequests.length > 0 && (
+                    <div className="space-y-4">
+                        <h2 className="text-xl font-semibold">Pending Access Requests</h2>
+                        <div className="rounded-md border">
+                            <div className="p-4">
+                                {roleRequests.map((reqUser) => (
+                                    <div key={reqUser._id} className="flex items-center justify-between py-2 border-b last:border-0">
+                                        <div>
+                                            <p className="font-medium">{reqUser.name}</p>
+                                            <p className="text-sm text-muted-foreground">{reqUser.email} wants to be <b>{reqUser.roleRequest}</b></p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" variant="outline" className="text-green-600 border-green-200 hover:bg-green-50" onClick={() => handleRoleAction(reqUser._id, 'approved')}>Approve</Button>
+                                            <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleRoleAction(reqUser._id, 'rejected')}>Reject</Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="space-y-4">
                     <h2 className="text-xl font-semibold">Recent Registrations</h2>

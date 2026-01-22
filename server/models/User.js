@@ -21,6 +21,15 @@ const userSchema = mongoose.Schema(
             enum: ['user', 'tailor', 'admin', 'superadmin'],
             default: 'user',
         },
+        allowedRoles: {
+            type: [String],
+            default: ['user'],
+        },
+        roleRequest: {
+            type: String,
+            enum: ['tailor', 'admin', 'superadmin'],
+            default: null,
+        },
         phone: {
             type: String,
         },
