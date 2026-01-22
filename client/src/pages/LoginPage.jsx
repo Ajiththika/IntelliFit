@@ -21,7 +21,7 @@ const LoginPage = () => {
         setLoading(true);
         try {
             await login(email, password);
-            navigate('/'); // Redirect to dashboard later, home for now
+            navigate('/dashboard'); // Direct to dashboard after login
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to login');
         } finally {

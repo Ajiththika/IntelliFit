@@ -54,9 +54,10 @@ const DashboardHome = () => {
             <div className="space-y-6">
                 <h1 className="text-3xl font-bold tracking-tight">Admin Overview</h1>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <AdminStatsCard title="Total Users" value={stats?.totalUsers} icon={Users} description="Registered accounts" />
                     <AdminStatsCard title="Active Tailors" value={stats?.totalTailors} icon={Store} description="Verified shops" />
+                    <AdminStatsCard title="Total Admins" value={stats?.totalAdmins} icon={Users} description="Platform admins" />
                     <AdminStatsCard title="Total Orders" value={stats?.totalOrders} icon={ShoppingBag} description="All time orders" />
                     <AdminStatsCard title="Total Revenue" value={`$${stats?.totalRevenue}`} icon={TrendingUp} description="Platform logic needed" />
                 </div>

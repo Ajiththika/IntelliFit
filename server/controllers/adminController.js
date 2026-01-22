@@ -16,6 +16,7 @@ const getAllUsers = async (req, res) => {
 const getPlatformStats = async (req, res) => {
     const totalUsers = await User.countDocuments();
     const totalTailors = await User.countDocuments({ role: 'tailor' }); // Users with role tailor
+    const totalAdmins = await User.countDocuments({ role: { $in: ['admin', 'superadmin'] } });
     // Or check TailorProfile count:
     const activeShops = await TailorProfile.countDocuments();
 
@@ -30,6 +31,7 @@ const getPlatformStats = async (req, res) => {
     res.json({
         totalUsers,
         totalTailors: activeShops,
+        totalAdmins,
         totalOrders,
         totalRevenue,
         pendingOrders
