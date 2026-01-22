@@ -67,15 +67,7 @@ const updateUserProfile = async (req, res) => {
             token: generateToken(updatedUser._id),
         };
 
-        // If user is a tailor, update their Whatsapp number in TailorProfile
-        if (user.role === 'tailor' && req.body.whatsappNumber) {
-            const tailorProfile = await TailorProfile.findOne({ user: user._id });
-            if (tailorProfile) {
-                tailorProfile.whatsappNumber = req.body.whatsappNumber;
-                await tailorProfile.save();
-                responseData.whatsappNumber = tailorProfile.whatsappNumber;
-            }
-        }
+
 
         res.json(responseData);
     } else {

@@ -12,7 +12,8 @@ const createOrUpdateProfile = async (req, res) => {
         experienceYears,
         location,
         pricing,
-        portfolioImages
+        portfolioImages,
+        whatsappNumber
     } = req.body;
 
     const profileFields = {
@@ -23,7 +24,8 @@ const createOrUpdateProfile = async (req, res) => {
         experienceYears,
         location,
         pricing,
-        portfolioImages
+        portfolioImages,
+        whatsappNumber
     };
 
     let profile = await TailorProfile.findOne({ user: req.user._id });
