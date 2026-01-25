@@ -41,7 +41,19 @@ const sizeProfileSchema = mongoose.Schema(
             sleeve: Number,
             inseam: Number,
             neck: Number,
+            thigh: Number,
         },
+        stylePreferences: {
+            preferredColors: [String],
+            fabricSensitivities: [String],
+            typicalSize: String,
+        },
+        history: [{
+            timestamp: { type: Date, default: Date.now },
+            measurements: Object,
+            source: { type: String, enum: ['AI_GENERATED', 'MANUAL_EDIT'], default: 'AI_GENERATED' },
+            note: String
+        }],
         confidenceScore: {
             type: Number,
             default: 0,

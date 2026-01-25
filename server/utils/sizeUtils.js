@@ -69,6 +69,7 @@ const estimateMeasurements = (data) => {
         neck: Math.round(neck),
         sleeve: Math.round(sleeve),
         inseam: Math.round(inseam),
+        thigh: Math.round(hip * 0.58),
     };
 
     return {

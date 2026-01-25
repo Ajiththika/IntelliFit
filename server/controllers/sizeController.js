@@ -26,6 +26,15 @@ const generateSize = async (req, res) => {
     let profile = await SizeProfile.findOne({ user: req.user._id });
 
     if (profile) {
+        // Push current state to history before update
+        if (profile.calculatedSizes) {
+            profile.history.push({
+                measurements: profile.calculatedSizes,
+                source: 'AI_GENERATED', // Or preserve previous source if we tracked it? For now, we are replacing, so this record becomes history.
+                timestamp: new Date()
+            });
+        }
+
         // Update existing
         profile.gender = gender;
         profile.height = height;
@@ -50,8 +59,46 @@ const generateSize = async (req, res) => {
             fitPreference,
             calculatedSizes: estimation.measurements,
             confidenceScore: estimation.confidence,
+            history: [{
+                measurements: estimation.measurements,
+                source: 'AI_GENERATED',
+                timestamp: new Date(),
+                note: 'Initial Generation'
+            }]
         });
         res.status(201).json(newProfile);
+    }
+};
+
+// @desc    Update measurements manually
+// @route   PUT /api/size/manual
+// @access  Private
+const updateManualMeasurements = async (req, res) => {
+    const { measurements } = req.body;
+
+    const profile = await SizeProfile.findOne({ user: req.user._id });
+
+    if (profile) {
+        // Push current state to history
+        if (profile.calculatedSizes) {
+            profile.history.push({
+                measurements: profile.calculatedSizes,
+                source: 'MANUAL_EDIT', // The state getting saved to history was what it was BEFORE this edit.
+                timestamp: new Date()
+            });
+        }
+
+        profile.calculatedSizes = { ...profile.calculatedSizes, ...measurements };
+
+        // Add a history entry for the NEW manual state as well? 
+        // Typically history is "past". We update the current "live" one.
+        // But for tracking, maybe we want to know *that* a manual edit happened.
+        // Let's rely on the previous logic: history stores what was replaced.
+
+        const updatedProfile = await profile.save();
+        res.json(updatedProfile);
+    } else {
+        res.status(404).json({ message: 'Profile not found. Please generate sizes first.' });
     }
 };
 
@@ -66,4 +113,5 @@ const getSizeProfile = async (req, res) => {
 module.exports = {
     generateSize,
     getSizeProfile,
+    updateManualMeasurements,
 };
