@@ -31,9 +31,11 @@ const tailorProfileSchema = mongoose.Schema(
             type: String, // Simple string for MVP (City, Country)
             required: true,
         },
-        pricing: {
-            type: String, // e.g., '$$' or 'Starts at $50'
-        },
+        pricing: [{
+            serviceName: { type: String, required: true },
+            startingPrice: { type: Number, required: true },
+            description: { type: String }
+        }],
         rating: {
             type: Number,
             default: 0,

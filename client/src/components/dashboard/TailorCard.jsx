@@ -75,7 +75,11 @@ const TailorCard = ({ tailor }) => {
                     </div>
 
                     <div className="mt-auto pt-4 flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">{tailor.pricing || 'Contact for price'}</span>
+                        <span className="font-medium text-sm">
+                            {Array.isArray(tailor.pricing) && tailor.pricing.length > 0
+                                ? `Starts at $${Math.min(...tailor.pricing.map(p => p.startingPrice))}`
+                                : (typeof tailor.pricing === 'string' ? tailor.pricing : 'Contact for price')}
+                        </span>
                         <div className="flex gap-2">
                             {tailor.portfolioImages && tailor.portfolioImages.length > 0 && (
                                 <Button size="sm" variant="outline" onClick={() => setShowPortfolio(true)}>View Work</Button>
