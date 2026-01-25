@@ -10,6 +10,7 @@ const RegisterPage = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('user');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -21,7 +22,7 @@ const RegisterPage = () => {
         setError('');
         setLoading(true);
         try {
-            await register(name, email, password);
+            await register(name, email, password, role);
             navigate('/');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to register');
@@ -82,6 +83,24 @@ const RegisterPage = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                             />
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label>I want to join as a:</Label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div
+                                    className={`flex items-center justify-center p-4 border rounded-lg cursor-pointer transition-colors ${role === 'user' ? 'bg-primary/10 border-primary' : 'bg-card hover:bg-muted'}`}
+                                    onClick={() => setRole('user')}
+                                >
+                                    <span className={`font-medium ${role === 'user' ? 'text-primary' : ''}`}>Customer</span>
+                                </div>
+                                <div
+                                    className={`flex items-center justify-center p-4 border rounded-lg cursor-pointer transition-colors ${role === 'tailor' ? 'bg-primary/10 border-primary' : 'bg-card hover:bg-muted'}`}
+                                    onClick={() => setRole('tailor')}
+                                >
+                                    <span className={`font-medium ${role === 'tailor' ? 'text-primary' : ''}`}>Tailor</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

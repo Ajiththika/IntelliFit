@@ -35,11 +35,15 @@ const registerUser = async (req, res) => {
         return;
     }
 
+    // Validate role is allowed (prevent admin creation via public API)
+    const allowedRoles = ['user', 'tailor'];
+    const userRole = (role && allowedRoles.includes(role)) ? role : 'user';
+
     const user = await User.create({
         name,
         email,
         password,
-        role: role || 'user', // Default to user if not specified
+        role: userRole,
     });
 
     if (user) {
