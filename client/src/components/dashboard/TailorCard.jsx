@@ -81,30 +81,30 @@ const TailorCard = ({ tailor }) => {
                                 : (typeof tailor.pricing === 'string' ? tailor.pricing : 'Contact for price')}
                         </span>
                         <div className="flex gap-2">
-                            {tailor.portfolioImages && tailor.portfolioImages.length > 0 && (
-                                <Button size="sm" variant="outline" onClick={() => setShowPortfolio(true)}>View Work</Button>
-                            )}
+                            <Link to={`/tailor/${tailor._id}`}>
+                                <Button size="sm" variant="outline">View Profile</Button>
+                            </Link>
                             <Button size="sm" variant="default" onClick={() => setShowOrderDialog(true)}>Book Now</Button>
                         </div>
                     </div>
                 </div>
+
+                {showOrderDialog && (
+                    <CreateOrderDialog
+                        tailorId={tailor._id}
+                        tailorName={tailor.businessName}
+                        onClose={() => setShowOrderDialog(false)}
+                    /> // Restore closing tag
+                )}
+
+                {showPortfolio && (
+                    <PortfolioGalleryDialog
+                        images={tailor.portfolioImages}
+                        tailorName={tailor.businessName}
+                        onClose={() => setShowPortfolio(false)}
+                    />
+                )}
             </div>
-
-            {showOrderDialog && (
-                <CreateOrderDialog
-                    tailorId={tailor._id}
-                    tailorName={tailor.businessName}
-                    onClose={() => setShowOrderDialog(false)}
-                /> // Restore closing tag
-            )}
-
-            {showPortfolio && (
-                <PortfolioGalleryDialog
-                    images={tailor.portfolioImages}
-                    tailorName={tailor.businessName}
-                    onClose={() => setShowPortfolio(false)}
-                />
-            )}
         </>
     );
 };

@@ -13,6 +13,8 @@ import ProfilePage from './pages/dashboard/ProfilePage';
 import PricingPage from './pages/PricingPage';
 import CustomizerPage from './pages/CustomizerPage';
 
+import TailorPublicProfile from './pages/TailorPublicProfile';
+
 function App() {
   return (
     <AuthProvider>
@@ -24,6 +26,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/studio" element={<CustomizerPage />} />
+            <Route path="/tailor/:id" element={<TailorPublicProfile />} />
 
 
             {/* Protected Dashboard Routes */}
