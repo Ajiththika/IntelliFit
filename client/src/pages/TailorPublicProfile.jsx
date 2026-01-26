@@ -3,29 +3,34 @@ import { useParams, Link } from 'react-router-dom';
 import API from '../services/api';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Loader2, MapPin, Star, Scissors, ArrowLeft, Image as ImageIcon, DollarSign } from 'lucide-react';
+import { Loader2, MapPin, Star, Scissors, ArrowLeft, Image as ImageIcon, DollarSign, MessageSquare } from 'lucide-react';
 import CreateOrderDialog from '../components/dashboard/CreateOrderDialog';
 import PortfolioGalleryDialog from '../components/dashboard/PortfolioGalleryDialog';
 
 const TailorPublicProfile = () => {
     const { id } = useParams();
     const [tailor, setTailor] = useState(null);
+    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showOrderDialog, setShowOrderDialog] = useState(false);
     const [showPortfolio, setShowPortfolio] = useState(false);
 
     useEffect(() => {
-        const fetchTailor = async () => {
+        const fetchData = async () => {
             try {
-                const { data } = await API.get(`/tailors/${id}`);
-                setTailor(data);
+                const [tailorRes, reviewsRes] = await Promise.all([
+                    API.get(`/tailors/${id}`),
+                    API.get(`/reviews/${id}`)
+                ]);
+                setTailor(tailorRes.data);
+                setReviews(reviewsRes.data);
             } catch (error) {
-                console.error("Failed to fetch tailor profile", error);
+                console.error("Failed to fetch tailor profile or reviews", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchTailor();
+        fetchData();
     }, [id]);
 
     if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -98,7 +103,7 @@ const TailorPublicProfile = () => {
 
             <div className="container mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
 
-                {/* Services & Pricing */}
+                {/* Services & Pricing & Reviews */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-card border rounded-xl shadow-sm p-6 md:p-8">
                         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -144,6 +149,51 @@ const TailorPublicProfile = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* Reviews Section */}
+                    <div className="bg-card border rounded-xl shadow-sm p-6 md:p-8">
+                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                            <MessageSquare className="h-6 w-6 text-primary" /> Reviews
+                        </h2>
+
+                        {reviews.length > 0 ? (
+                            <div className="space-y-6">
+                                {reviews.map((review) => (
+                                    <div key={review._id} className="border-b last:border-0 pb-6 last:pb-0">
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+                                                {review.customer?.avatar ? (
+                                                    <img src={review.customer.avatar} alt={review.customer.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span className="font-bold text-muted-foreground">{review.customer?.name?.charAt(0) || "U"}</span>
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-semibold">{review.customer?.name || "Anonymous User"}</h4>
+                                                        <div className="flex items-center gap-1 text-sm text-yellow-500 mt-0.5">
+                                                            {Array.from({ length: 5 }).map((_, i) => (
+                                                                <Star key={i} className={`h-3 w-3 ${i < review.rating ? "fill-current" : "text-gray-300"}`} />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {new Date(review.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <p className="mt-2 text-sm text-muted-foreground">{review.comment}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                                <p>No reviews yet.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Sidebar (Reviews Placeholders or Contact Info) */}
