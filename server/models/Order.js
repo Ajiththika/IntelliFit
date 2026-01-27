@@ -12,9 +12,22 @@ const orderSchema = mongoose.Schema(
             required: true,
             ref: 'TailorProfile',
         },
+        status: {
+            type: String,
+            enum: ['pending', 'accepted', 'rejected', 'in_progress', 'fitting_review', 'completed', 'cancelled', 'disputed'],
+            default: 'pending',
+        },
+        statusHistory: [{
+            status: String,
+            changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            timestamp: { type: Date, default: Date.now },
+            note: String
+        }],
         sizeProfileSnapshot: {
-            type: Object, // Store copy of measurements at time of order
-            required: true,
+            measurements: Object,
+            confidence: Number,
+            source: String, // e.g. 'AI_GENERATED', 'VERIFIED'
+            meta: Object // Detailed confidence map
         },
         garmentType: {
             type: String,
@@ -27,11 +40,11 @@ const orderSchema = mongoose.Schema(
             type: Number,
             required: true,
         },
-        status: {
-            type: String,
-            enum: ['pending', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled'],
-            default: 'pending',
-        },
+        designAttachments: [{
+            url: String,
+            type: String, // 'image', 'document'
+            uploadedAt: { type: Date, default: Date.now }
+        }],
     },
     {
         timestamps: true,

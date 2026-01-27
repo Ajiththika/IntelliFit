@@ -27,10 +27,20 @@ const createOrder = async (req, res) => {
     const order = await Order.create({
         customer: req.user._id,
         tailor: tailorId,
-        sizeProfileSnapshot: sizeProfile.calculatedSizes,
+        sizeProfileSnapshot: {
+            measurements: sizeProfile.calculatedSizes,
+            confidence: sizeProfile.confidenceScore,
+            source: sizeProfile.status,
+            meta: sizeProfile.measurementMeta
+        },
         garmentType,
         instructions,
         price,
+        statusHistory: [{
+            status: 'pending',
+            changedBy: req.user._id,
+            note: 'Order Created'
+        }]
     });
 
     res.status(201).json(order);
@@ -64,23 +74,54 @@ const getShopOrders = async (req, res) => {
 
 // @desc    Update order status
 // @route   PUT /api/orders/:id/status
-// @access  Private (Tailor/Admin)
+// @access  Private (Tailor/Admin/User for cancellation)
 const updateOrderStatus = async (req, res) => {
-    const { status } = req.body;
+    const { status, note } = req.body;
     const order = await Order.findById(req.params.id);
 
     if (!order) {
         return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Verify ownership (Tailor)
-    const tailorProfile = await TailorProfile.findOne({ user: req.user._id });
+    // Role Verification
+    const isTailor = await TailorProfile.findOne({ user: req.user._id, _id: order.tailor });
+    const isCustomer = order.customer.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
 
-    if (req.user.role !== 'admin' && (!tailorProfile || order.tailor.toString() !== tailorProfile._id.toString())) {
-        return res.status(401).json({ message: 'Not authorized to update this order' });
+    if (!isTailor && !isCustomer && !isAdmin) {
+        return res.status(401).json({ message: 'Not authorized' });
     }
 
+    // STATE MACHINE VALIDATION
+    const allowedTransitions = {
+        'pending': ['accepted', 'rejected', 'cancelled'],
+        'accepted': ['in_progress', 'cancelled'], // Cancelled only by agreement or admin usually
+        'in_progress': ['fitting_review', 'completed', 'disputed'],
+        'fitting_review': ['in_progress', 'completed'],
+        'completed': ['disputed'], // Post-completion dispute
+        'cancelled': [],
+        'rejected': [],
+        'disputed': ['in_progress', 'completed', 'cancelled'] // Resolution paths
+    };
+
+    // Allow cancelling if pending and user is customer
+    if (isCustomer && status === 'cancelled' && order.status === 'pending') {
+        // Allowed
+    } else if (!isAdmin && !allowedTransitions[order.status]?.includes(status)) {
+        return res.status(400).json({
+            message: `Invalid status transition from ${order.status} to ${status}`
+        });
+    }
+
+    // Update State
+    const previousStatus = order.status;
     order.status = status;
+    order.statusHistory.push({
+        status: status,
+        changedBy: req.user._id,
+        note: note || `Status changed from ${previousStatus} to ${status}`
+    });
+
     const updatedOrder = await order.save();
     res.json(updatedOrder);
 };
