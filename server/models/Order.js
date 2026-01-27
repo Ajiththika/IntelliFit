@@ -40,6 +40,18 @@ const orderSchema = mongoose.Schema(
             type: Number,
             required: true,
         },
+        paymentStatus: {
+            type: String,
+            enum: ['unpaid', 'escrow', 'paid', 'refunded'],
+            default: 'unpaid',
+        },
+        paymentIntentId: {
+            type: String,
+        },
+        commission: {
+            type: Number,
+            default: 0 // Platform fee
+        },
         designAttachments: [{
             url: String,
             type: String, // 'image', 'document'
