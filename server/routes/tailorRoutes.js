@@ -3,9 +3,13 @@ const router = express.Router();
 const {
     createOrUpdateProfile,
     getTailors,
-    getTailorById
+    getTailorById,
+    getTailorDashboardStats
 } = require('../controllers/tailorController');
 const { protect, authorize } = require('../middleware/authMiddleware');
+
+router.route('/dashboard/stats')
+    .get(protect, authorize('tailor', 'admin'), getTailorDashboardStats);
 
 router.route('/')
     .post(protect, authorize('tailor', 'admin'), createOrUpdateProfile) // Create/Update

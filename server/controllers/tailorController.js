@@ -80,8 +80,63 @@ const getTailorById = async (req, res) => {
     }
 };
 
+const Order = require('../models/Order');
+const Review = require('../models/Review');
+
+// ... existing functions ... 
+
+// @desc    Get tailor dashboard stats
+// @route   GET /api/tailors/dashboard/stats
+// @access  Private (Tailor only)
+const getTailorDashboardStats = async (req, res) => {
+    try {
+        const tailorProfile = await TailorProfile.findOne({ user: req.user._id });
+        if (!tailorProfile) {
+            return res.status(404).json({ message: 'Tailor profile not found' });
+        }
+
+        // 1. Order Stats
+        const orders = await Order.find({ tailor: tailorProfile._id });
+
+        const completedOrders = orders.filter(o => o.status === 'completed');
+        const activeOrders = orders.filter(o => ['pending', 'accepted', 'in_progress', 'fitting_review'].includes(o.status));
+
+        const totalRevenue = completedOrders.reduce((acc, order) => acc + (order.price || 0), 0);
+
+        // 2. Review Stats
+        const reviews = await Review.find({ tailor: tailorProfile._id });
+        const avgRating = reviews.length > 0
+            ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+            : 0;
+
+        // 3. Monthly Earnings (Simple calc for last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const monthlyRevenue = completedOrders
+            .filter(o => new Date(o.updatedAt) >= thirtyDaysAgo)
+            .reduce((acc, order) => acc + (order.price || 0), 0);
+
+        res.json({
+            totalOrders: orders.length,
+            completedCount: completedOrders.length,
+            activeCount: activeOrders.length,
+            totalRevenue,
+            monthlyRevenue,
+            avgRating,
+            reviewCount: reviews.length,
+            recentOrders: orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
+        });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 module.exports = {
     createOrUpdateProfile,
     getTailors,
-    getTailorById
+    getTailorById,
+    getTailorDashboardStats
 };
