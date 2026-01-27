@@ -10,6 +10,10 @@ const authUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+        if (user.isActive === false) {
+            return res.status(403).json({ message: 'Account is suspended. Contact support.' });
+        }
+
         res.json({
             _id: user._id,
             name: user.name,
