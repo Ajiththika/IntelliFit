@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/authContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -14,6 +14,7 @@ const LoginPage = () => {
 
     const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,7 +22,8 @@ const LoginPage = () => {
         setLoading(true);
         try {
             await login(email, password);
-            navigate('/dashboard'); // Direct to dashboard after login
+            const from = location.state?.from?.pathname || '/dashboard';
+            navigate(from, { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to login');
         } finally {

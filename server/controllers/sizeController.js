@@ -43,7 +43,9 @@ const generateSize = async (req, res) => {
         profile.wristSize = wristSize;
         profile.fitPreference = fitPreference;
         profile.calculatedSizes = estimation.measurements;
+        profile.measurementMeta = estimation.measurementMeta;
         profile.confidenceScore = estimation.confidence;
+        profile.status = 'AI_GENERATED';
 
         const updatedProfile = await profile.save();
         res.json(updatedProfile);
@@ -58,7 +60,9 @@ const generateSize = async (req, res) => {
             wristSize,
             fitPreference,
             calculatedSizes: estimation.measurements,
+            measurementMeta: estimation.measurementMeta,
             confidenceScore: estimation.confidence,
+            status: 'AI_GENERATED',
             history: [{
                 measurements: estimation.measurements,
                 source: 'AI_GENERATED',
@@ -89,6 +93,18 @@ const updateManualMeasurements = async (req, res) => {
         }
 
         profile.calculatedSizes = { ...profile.calculatedSizes, ...measurements };
+
+        // Update metadata for changed fields
+        if (!profile.measurementMeta) profile.measurementMeta = new Map();
+
+        Object.keys(measurements).forEach(key => {
+            profile.measurementMeta.set(key, {
+                confidence: 100,
+                source: 'MANUAL'
+            });
+        });
+
+        profile.status = 'VERIFIED';
 
         // Add a history entry for the NEW manual state as well? 
         // Typically history is "past". We update the current "live" one.

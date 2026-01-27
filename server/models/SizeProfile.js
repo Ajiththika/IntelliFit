@@ -58,6 +58,18 @@ const sizeProfileSchema = mongoose.Schema(
             type: Number,
             default: 0,
         },
+        status: {
+            type: String,
+            enum: ['DRAFT', 'AI_GENERATED', 'VERIFIED'],
+            default: 'DRAFT'
+        },
+        measurementMeta: {
+            type: Map,
+            of: new mongoose.Schema({
+                confidence: Number, // 0-100
+                source: { type: String, enum: ['AI', 'MANUAL'], default: 'AI' }
+            }, { _id: false })
+        },
     },
     {
         timestamps: true,

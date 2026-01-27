@@ -72,11 +72,43 @@ const estimateMeasurements = (data) => {
         thigh: Math.round(hip * 0.58),
     };
 
+    // Generate Metadata/Confidence
+    const measurementMeta = {};
+    const baseConfidence = 85;
+
+    // Heuristic: Waist is harder to predict than height-based metrics
+    const confidenceMap = {
+        chest: 85,
+        waist: 70, // Variable due to body fat
+        hip: 75,
+        shoulder: 85,
+        neck: 80,
+        sleeve: 90, // Strongly correlated with height
+        inseam: 90, // Strongly correlated with height
+        thigh: 70
+    };
+
+    // Adjust confidence based on BMI outliers
+    const bmi = calculateBMI(weight, height);
+    const bmiPenalty = (bmi < 18.5 || bmi > 30) ? 10 : 0;
+
+    Object.keys(measurements).forEach(key => {
+        let conf = (confidenceMap[key] || baseConfidence) - bmiPenalty;
+        if (conf < 0) conf = 0;
+        if (conf > 100) conf = 100;
+
+        measurementMeta[key] = {
+            confidence: conf,
+            source: 'AI'
+        };
+    });
+
     return {
         measurements,
-        bmi: calculateBMI(weight, height),
+        measurementMeta, // Return detailed meta
+        bmi,
         frame: getFrameSize(wristSize, gender),
-        confidence: 85, // Static high confidence for rule-based MVP
+        confidence: Math.round(Object.values(measurementMeta).reduce((a, b) => a + b.confidence, 0) / Object.keys(measurementMeta).length), // Average confidence
     };
 };
 
