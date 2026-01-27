@@ -130,9 +130,48 @@ const switchRole = async (req, res) => {
     }
 };
 
+// @desc    Toggle favorite tailor
+// @route   POST /api/users/favorites
+// @access  Private
+const toggleFavorite = async (req, res) => {
+    const { tailorId } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        if (user.favorites.includes(tailorId)) {
+            user.favorites = user.favorites.filter(id => id.toString() !== tailorId);
+        } else {
+            user.favorites.push(tailorId);
+        }
+        await user.save();
+
+        // Return updated favorites populated
+        const updatedUser = await User.findById(req.user._id).populate('favorites', 'businessName specializations coverImage');
+        res.json(updatedUser.favorites);
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+};
+
+// @desc    Get user favorites
+// @route   GET /api/users/favorites
+// @access  Private
+const getFavorites = async (req, res) => {
+    const user = await User.findById(req.user._id).populate('favorites', 'businessName specializations coverImage userId');
+    if (user) {
+        res.json(user.favorites);
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+};
+
 module.exports = {
     getUserProfile,
     updateUserProfile,
     requestRoleChange,
     switchRole,
+    toggleFavorite,
+    getFavorites
 };

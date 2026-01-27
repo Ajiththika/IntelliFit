@@ -44,6 +44,10 @@ const userSchema = mongoose.Schema(
         subscriptionId: {
             type: String,
         },
+        favorites: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'TailorProfile'
+        }],
         // Optional: Add profile fields or reference a profile model
     },
     {
