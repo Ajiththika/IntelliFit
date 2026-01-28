@@ -1,5 +1,6 @@
 const SizeProfile = require('../models/SizeProfile');
 const { estimateMeasurements } = require('../utils/sizeUtils');
+const { trackEvent } = require('../utils/analytics');
 
 // @desc    Generate size profile
 // @route   POST /api/size/generate
@@ -21,6 +22,13 @@ const generateSize = async (req, res) => {
         wristSize,
         fitPreference,
     });
+
+    // Analytics Context
+    const analyticsProps = {
+        gender,
+        confidence: estimation.confidence,
+        fit: fitPreference
+    };
 
     // Check if profile exists
     let profile = await SizeProfile.findOne({ user: req.user._id });
@@ -48,6 +56,7 @@ const generateSize = async (req, res) => {
         profile.status = 'AI_GENERATED';
 
         const updatedProfile = await profile.save();
+        trackEvent('SIZE_GENERATED', req.user._id, { ...analyticsProps, action: 'update' }, req);
         res.json(updatedProfile);
     } else {
         // Create new
@@ -70,6 +79,7 @@ const generateSize = async (req, res) => {
                 note: 'Initial Generation'
             }]
         });
+        trackEvent('SIZE_GENERATED', req.user._id, { ...analyticsProps, action: 'create' }, req);
         res.status(201).json(newProfile);
     }
 };

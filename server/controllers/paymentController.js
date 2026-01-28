@@ -5,6 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 const Transaction = require('../models/Transaction');
 const Order = require('../models/Order');
+const { trackEvent } = require('../utils/analytics');
 
 // ... existing setup (Stripe, User) ...
 
@@ -91,6 +92,12 @@ const mockPaymentSuccess = async (req, res) => {
                     commission: order.commission
                 }
             });
+
+            trackEvent('PAYMENT_COMPLETED', req.user._id, {
+                orderId: order._id,
+                amount: order.price,
+                commission: order.commission
+            }, req);
 
             return res.json({ message: 'Order payment successful (Mock)' });
         }

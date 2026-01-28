@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
+const { trackEvent } = require('../utils/analytics');
 
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
@@ -13,6 +14,8 @@ const authUser = async (req, res) => {
         if (user.isActive === false) {
             return res.status(403).json({ message: 'Account is suspended. Contact support.' });
         }
+
+        trackEvent('USER_LOGGED_IN', user._id, { role: user.role }, req);
 
         res.json({
             _id: user._id,
@@ -51,6 +54,8 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
+        trackEvent('USER_REGISTERED', user._id, { role: user.role, source: 'web' }, req);
+
         res.status(201).json({
             _id: user._id,
             name: user.name,

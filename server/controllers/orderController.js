@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const SizeProfile = require('../models/SizeProfile');
 const TailorProfile = require('../models/TailorProfile');
+const { trackEvent } = require('../utils/analytics');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -42,6 +43,13 @@ const createOrder = async (req, res) => {
             note: 'Order Created'
         }]
     });
+
+    trackEvent('ORDER_CREATED', req.user._id, {
+        orderId: order._id,
+        tailorId: tailorId,
+        amount: price,
+        garmentType
+    }, req);
 
     res.status(201).json(order);
 };
