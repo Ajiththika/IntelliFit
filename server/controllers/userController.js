@@ -1,5 +1,9 @@
 const User = require('../models/User');
 const TailorProfile = require('../models/TailorProfile');
+const Order = require('../models/Order');
+const SizeProfile = require('../models/SizeProfile');
+const Review = require('../models/Review');
+const AuditLog = require('../models/AuditLog');
 const generateToken = require('../utils/generateToken');
 const bcrypt = require('bcryptjs');
 
@@ -167,11 +171,84 @@ const getFavorites = async (req, res) => {
     }
 };
 
+// @desc    Export my data (GDPR)
+// @route   GET /api/users/export-data
+// @access  Private
+const exportUserData = async (req, res) => {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    const sizeProfile = await SizeProfile.findOne({ user: req.user._id });
+    const orders = await Order.find({ customer: req.user._id });
+    const reviews = await Review.find({ customer: req.user._id });
+
+    // Tailor Data if applicable
+    let tailorProfile = null;
+    if (user.role === 'tailor') {
+        tailorProfile = await TailorProfile.findOne({ user: req.user._id });
+    }
+
+    res.json({
+        user,
+        sizeProfile,
+        tailorProfile,
+        orders,
+        reviews,
+        exportedAt: new Date()
+    });
+};
+
+// @desc    Delete my account (GDPR - Right to Erasure)
+// @route   DELETE /api/users/delete-account
+// @access  Private
+const deleteUserAccount = async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        // 1. Delete Biometric Data (Hard Delete)
+        await SizeProfile.deleteOne({ user: user._id });
+
+        // 2. Anonymize User Record (Soft Delete / Scrub PII)
+        // We keep the ID so Orders don't break, but data is gone.
+        user.name = 'Deleted User';
+        user.email = `deleted_${user._id}@intelifit.local`; // Unique placeholder
+        user.password = await bcrypt.hash(Math.random().toString(36), 10); // Unusable password
+        user.phone = null;
+        user.avatar = null;
+        user.favorites = [];
+        user.isActive = false;
+
+        // If tailor, remove public profile
+        if (user.role === 'tailor') {
+            await TailorProfile.deleteOne({ user: user._id });
+        }
+
+        await user.save();
+
+        // 3. Log Audit
+        await AuditLog.create({
+            admin: user._id, // Self-action
+            action: 'DELETE_USER',
+            targetUser: user._id,
+            details: 'User requested account deletion (Right to Erasure)'
+        });
+
+        res.json({ message: 'Account deleted and PII removed.' });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+};
+
 module.exports = {
     getUserProfile,
     updateUserProfile,
     requestRoleChange,
     switchRole,
     toggleFavorite,
-    getFavorites
+    getFavorites,
+    exportUserData,
+    deleteUserAccount
 };
