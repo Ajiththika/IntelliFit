@@ -10,10 +10,30 @@ const bcrypt = require('bcryptjs');
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
+// @desc    Get user profile
+// @route   GET /api/users/profile
+// @route   GET /api/users/me
+// @access  Private
 const getUserProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
+        // Fetch Size Profile Link
+        const sizeProfile = await SizeProfile.findOne({ user: user._id }, 'status _id');
+
+        // Calculate Completeness
+        let filledFields = 0;
+        const totalFields = 6; // name, email, phone, city, avatar, sizeProfile
+
+        if (user.name) filledFields++;
+        if (user.email) filledFields++;
+        if (user.phone) filledFields++;
+        if (user.city) filledFields++;
+        if (user.avatar) filledFields++;
+        if (sizeProfile) filledFields++;
+
+        const completeness = Math.round((filledFields / totalFields) * 100);
+
         let profileData = {
             _id: user._id,
             name: user.name,
@@ -22,8 +42,12 @@ const getUserProfile = async (req, res) => {
             allowedRoles: user.allowedRoles,
             roleRequest: user.roleRequest,
             phone: user.phone,
+            city: user.city,
+            preferences: user.preferences,
             avatar: user.avatar,
             isPremium: user.isPremium,
+            sizeProfile: sizeProfile ? { id: sizeProfile._id, status: sizeProfile.status } : null,
+            completeness,
         };
 
         if (user.role === 'tailor') {
@@ -42,6 +66,7 @@ const getUserProfile = async (req, res) => {
 
 // @desc    Update user profile
 // @route   PUT /api/users/profile
+// @route   PATCH /api/users/me
 // @access  Private
 const updateUserProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
@@ -50,13 +75,37 @@ const updateUserProfile = async (req, res) => {
         user.name = req.body.name || user.name;
         user.email = req.body.email || user.email;
         user.phone = req.body.phone || user.phone;
+        user.city = req.body.city || user.city;
         user.avatar = req.body.avatar || user.avatar;
+
+        if (req.body.preferences) {
+            // Merge preferences shallowly or deep? 
+            // For now, doing a safe merge for known keys to avoid overwriting with incomplete obj if client sends partial
+            user.preferences = {
+                ...user.preferences,
+                ...req.body.preferences,
+                notifications: { ...user.preferences?.notifications, ...req.body.preferences?.notifications },
+                fashion: { ...user.preferences?.fashion, ...req.body.preferences?.fashion }
+            };
+        }
 
         if (req.body.password) {
             user.password = req.body.password;
         }
 
         const updatedUser = await user.save();
+
+        // Recalculate completeness for response
+        const sizeProfile = await SizeProfile.findOne({ user: user._id }, 'status _id');
+        let filledFields = 0;
+        const totalFields = 6;
+        if (updatedUser.name) filledFields++;
+        if (updatedUser.email) filledFields++;
+        if (updatedUser.phone) filledFields++;
+        if (updatedUser.city) filledFields++;
+        if (updatedUser.avatar) filledFields++;
+        if (sizeProfile) filledFields++;
+        const completeness = Math.round((filledFields / totalFields) * 100);
 
         let responseData = {
             _id: updatedUser._id,
@@ -66,12 +115,14 @@ const updateUserProfile = async (req, res) => {
             allowedRoles: updatedUser.allowedRoles,
             roleRequest: updatedUser.roleRequest,
             phone: updatedUser.phone,
+            city: updatedUser.city,
+            preferences: updatedUser.preferences,
             avatar: updatedUser.avatar,
             isPremium: updatedUser.isPremium,
+            sizeProfile: sizeProfile ? { id: sizeProfile._id, status: sizeProfile.status } : null,
+            completeness,
             token: generateToken(updatedUser._id),
         };
-
-
 
         res.json(responseData);
     } else {

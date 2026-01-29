@@ -12,6 +12,7 @@ import OrdersPage from './pages/dashboard/OrdersPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import PricingPage from './pages/PricingPage';
 import CustomizerPage from './pages/CustomizerPage';
+import StyleAdvisorPage from './pages/StyleAdvisorPage';
 
 import TailorPublicProfile from './pages/TailorPublicProfile';
 
@@ -40,6 +41,7 @@ function App() {
               <Route path="settings" element={<ProfilePage />} /> {/* mapping settings to profile for now */}
             </Route>
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/style-advisor" element={<StyleAdvisorPage />} />
           </Routes>
         </div>
       </Router>

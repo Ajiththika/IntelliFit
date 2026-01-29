@@ -29,6 +29,9 @@ const Navbar = () => {
                     <Link to="/studio" className="text-sm font-medium transition-colors hover:text-primary">
                         Studio
                     </Link>
+                    <Link to="/style-advisor" className="text-sm font-medium transition-colors hover:text-primary">
+                        Style Advisor
+                    </Link>
                     <Link to="/" className="text-sm font-medium transition-colors hover:text-primary">
                         Marketplace
                     </Link>

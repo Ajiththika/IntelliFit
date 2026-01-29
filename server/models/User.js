@@ -37,6 +37,20 @@ const userSchema = mongoose.Schema(
             type: String,
             default: '',
         },
+        city: {
+            type: String,
+        },
+        preferences: {
+            notifications: {
+                email: { type: Boolean, default: true },
+                sms: { type: Boolean, default: false },
+                marketing: { type: Boolean, default: false },
+            },
+            fashion: {
+                favoriteStyles: [String],
+                brands: [String],
+            },
+        },
         isPremium: {
             type: Boolean,
             default: false,
