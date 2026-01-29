@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import API from '../../services/api';
 import AdminStatsCard from '../../components/admin/AdminStatsCard';
 import AdminUserTable from '../../components/admin/AdminUserTable';
+import OrderDetailsPage from './OrderDetailsPage';
 import { Users, ShoppingBag, Store, TrendingUp, Loader2 } from 'lucide-react';
 
 const DashboardHome = () => {
@@ -432,6 +433,7 @@ const DashboardHome = () => {
                                         <div className="text-xs text-muted-foreground">Chest</div>
                                         <div className="font-bold">{customerData.sizeProfile.calculatedSizes?.chest || '-'}</div>
                                     </div>
+                                    ```
                                     <div className="bg-secondary/30 p-2 rounded">
                                         <div className="text-xs text-muted-foreground">Waist</div>
                                         <div className="font-bold">{customerData.sizeProfile.calculatedSizes?.waist || '-'}</div>
