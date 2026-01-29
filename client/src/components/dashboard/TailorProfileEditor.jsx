@@ -5,7 +5,7 @@ import PortfolioUploader from './PortfolioUploader';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Loader2, Plus, Trash2, Save } from 'lucide-react';
+import { Loader2, Plus, Trash2, Save, X } from 'lucide-react';
 
 const TailorProfileEditor = () => {
     const [loading, setLoading] = useState(true);

@@ -158,7 +158,6 @@ const releaseFunds = async (req, res) => {
 
 
 module.exports = {
-    createCheckoutSession,
     createOrderCheckoutSession,
     mockPaymentSuccess,
     releaseFunds

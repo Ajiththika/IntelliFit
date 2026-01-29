@@ -16,17 +16,25 @@ const createOrUpdateProfile = async (req, res) => {
         whatsappNumber
     } = req.body;
 
-    const profileFields = {
-        user: req.user._id,
-        businessName,
-        bio,
-        specializations: specializations ? (Array.isArray(specializations) ? specializations : specializations.split(',').map(s => s.trim())) : [],
-        experienceYears,
-        location,
-        pricing,
-        portfolioImages,
-        whatsappNumber
-    };
+    // Build profile object dynamically to support partial updates
+    const profileFields = {};
+    if (businessName !== undefined) profileFields.businessName = businessName;
+    if (bio !== undefined) profileFields.bio = bio;
+    if (experienceYears !== undefined) profileFields.experienceYears = experienceYears;
+    if (location !== undefined) profileFields.location = location;
+    if (whatsappNumber !== undefined) profileFields.whatsappNumber = whatsappNumber;
+    if (pricing !== undefined) profileFields.pricing = pricing;
+    if (portfolioImages !== undefined) profileFields.portfolioImages = portfolioImages;
+
+    if (specializations !== undefined) {
+        profileFields.specializations = Array.isArray(specializations)
+            ? specializations
+            : specializations.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    // Always ensure user is set for query/creation
+    // Note: We use $set so we don't need to pass all fields if updating
+    // But for creation we need required fields. Models validation will handle that.
 
     let profile = await TailorProfile.findOne({ user: req.user._id });
 
@@ -41,6 +49,8 @@ const createOrUpdateProfile = async (req, res) => {
     }
 
     // Create
+    // Create
+    profileFields.user = req.user._id;
     profile = new TailorProfile(profileFields);
     await profile.save();
     res.json(profile);

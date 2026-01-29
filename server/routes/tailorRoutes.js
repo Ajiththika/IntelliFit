@@ -11,6 +11,9 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 router.route('/dashboard/stats')
     .get(protect, authorize('tailor', 'admin'), getTailorDashboardStats);
 
+router.route('/me')
+    .patch(protect, authorize('tailor', 'admin'), createOrUpdateProfile);
+
 router.route('/')
     .post(protect, authorize('tailor', 'admin'), createOrUpdateProfile) // Create/Update
     .get(getTailors); // List all
