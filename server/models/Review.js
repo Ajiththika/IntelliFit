@@ -17,12 +17,9 @@ const reviewSchema = mongoose.Schema(
             required: true,
             ref: 'Order',
         },
-        rating: {
-            type: Number,
-            required: true,
-            min: 1,
-            max: 5,
-        },
+        rating: { type: Number, required: true, min: 1, max: 5 },
+        fitAccuracy: { type: Number, required: true, min: 1, max: 5 },
+        quality: { type: Number, required: true, min: 1, max: 5 },
         comment: {
             type: String,
             required: true,

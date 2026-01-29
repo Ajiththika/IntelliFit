@@ -21,4 +21,6 @@ router.route('/')
 router.route('/:id')
     .get(getTailorById); // Get one
 
+router.get('/:id/reviews', require('../controllers/reviewController').getTailorReviews);
+
 module.exports = router;

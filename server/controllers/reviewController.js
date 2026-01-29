@@ -1,67 +1,105 @@
 const Review = require('../models/Review');
-const TailorProfile = require('../models/TailorProfile');
 const Order = require('../models/Order');
+const TailorProfile = require('../models/TailorProfile');
 
 // @desc    Create new review
-// @route   POST /api/reviews
-// @access  Private
+// @route   POST /api/orders/:orderId/review
+// @access  Private (Customer)
 const createReview = async (req, res) => {
-    const { orderId, rating, comment } = req.body;
+    const { rating, fitAccuracy, quality, comment } = req.body;
+    const { orderId } = req.params;
 
-    const order = await Order.findById(orderId);
+    try {
+        const order = await Order.findById(orderId);
 
-    if (!order) {
-        res.status(404);
-        throw new Error('Order not found');
-    }
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
 
-    // Ensure user owns the order
-    if (order.customer.toString() !== req.user._id.toString()) {
-        res.status(401);
-        throw new Error('Not authorized to review this order');
-    }
+        // Verify ownership and status
+        if (order.customer.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'Not authorized to review this order' });
+        }
 
-    // Check if already reviewed (handled by DB index, but good to check)
-    const alreadyReviewed = await Review.findOne({ order: orderId });
-    if (alreadyReviewed) {
-        res.status(400);
-        throw new Error('Order already reviewed');
-    }
+        if (order.status !== 'completed') {
+            return res.status(400).json({ message: 'Order must be completed before reviewing' });
+        }
 
-    const review = await Review.create({
-        customer: req.user._id,
-        tailor: order.tailor,
-        order: orderId,
-        rating: Number(rating),
-        comment,
-    });
+        // Check if already reviewed
+        const existingReview = await Review.findOne({ order: orderId });
+        if (existingReview) {
+            return res.status(400).json({ message: 'Order already reviewed' });
+        }
 
-    if (review) {
-        // Update Tailor's average rating
-        const reviews = await Review.find({ tailor: order.tailor });
-        const avgRating = reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length;
+        const review = await Review.create({
+            customer: req.user._id,
+            tailor: order.tailor,
+            order: orderId,
+            rating,
+            fitAccuracy,
+            quality,
+            comment
+        });
 
-        const tailorProfile = await TailorProfile.findById(order.tailor);
-        tailorProfile.rating = avgRating;
-        tailorProfile.reviewsCount = reviews.length;
-        await tailorProfile.save();
+        // Update Tailor Aggregates
+        const stats = await Review.aggregate([
+            { $match: { tailor: order.tailor } },
+            {
+                $group: {
+                    _id: '$tailor',
+                    avgRating: { $avg: '$rating' },
+                    avgFit: { $avg: '$fitAccuracy' },
+                    avgQuality: { $avg: '$quality' },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        if (stats.length > 0) {
+            await TailorProfile.findByIdAndUpdate(order.tailor, {
+                rating: stats[0].avgRating,
+                reviewsCount: stats[0].count,
+                metrics: {
+                    fitAccuracy: stats[0].avgFit,
+                    quality: stats[0].avgQuality
+                }
+            });
+        }
 
         res.status(201).json(review);
-    } else {
-        res.status(400);
-        throw new Error('Invalid review data');
+    } catch (error) {
+        console.error("Review creation failed", error);
+        res.status(500).json({ message: 'Server Error' });
     }
 };
 
 // @desc    Get reviews for a tailor
-// @route   GET /api/reviews/:tailorId
+// @route   GET /api/tailors/:id/reviews
 // @access  Public
 const getTailorReviews = async (req, res) => {
-    const reviews = await Review.find({ tailor: req.params.tailorId }).populate('customer', 'name avatar');
-    res.json(reviews);
+    try {
+        // req.params.id is the tailor ID from the route /api/tailors/:id/reviews
+        // BUT wait, is the route definition in tailorRoutes or reviewRoutes?
+        // If it's /api/tailors/:id/reviews, it should likely be in tailorRoutes.
+        // OR I can make /api/reviews/tailor/:id. The user requested GET /api/tailors/:id/reviews.
+
+        // Let's implement logic here and hook it up appropriately.
+
+        // We need to resolve the TailorProfile ID from the User ID? Or is :id the TailorProfile ID?
+        // In previous turns, :id usually refers to the TailorProfile ID directly in public profile calls.
+
+        const reviews = await Review.find({ tailor: req.params.id })
+            .populate('customer', 'name avatar')
+            .sort('-createdAt');
+
+        res.json(reviews);
+    } catch (error) {
+        console.error("Fetch reviews failed", error);
+        res.status(500).json({ message: 'Server Error' });
+    }
 };
 
 module.exports = {
     createReview,
-    getTailorReviews,
+    getTailorReviews
 };

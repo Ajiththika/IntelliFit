@@ -36,13 +36,11 @@ const tailorProfileSchema = mongoose.Schema(
             startingPrice: { type: Number, required: true },
             description: { type: String }
         }],
-        rating: {
-            type: Number,
-            default: 0,
-        },
-        reviewsCount: {
-            type: Number,
-            default: 0,
+        rating: { type: Number, default: 0 },
+        reviewsCount: { type: Number, default: 0 },
+        metrics: {
+            fitAccuracy: { type: Number, default: 0 },
+            quality: { type: Number, default: 0 },
         },
         portfolioImages: [{
             type: String, // URLs
