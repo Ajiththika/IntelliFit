@@ -33,7 +33,17 @@ const sizeProfileSchema = mongoose.Schema(
             enum: ['slim', 'regular', 'loose'],
             default: 'regular',
         },
-        calculatedSizes: {
+        bodyMeasurements: {
+            chest: Number,
+            waist: Number,
+            hip: Number,
+            shoulder: Number,
+            sleeve: Number,
+            inseam: Number,
+            neck: Number,
+            thigh: Number,
+        },
+        garmentMeasurements: {
             chest: Number,
             waist: Number,
             hip: Number,
@@ -50,7 +60,8 @@ const sizeProfileSchema = mongoose.Schema(
         },
         history: [{
             timestamp: { type: Date, default: Date.now },
-            measurements: Object,
+            bodyMeasurements: Object,
+            garmentMeasurements: Object,
             source: { type: String, enum: ['AI_GENERATED', 'MANUAL_EDIT'], default: 'AI_GENERATED' },
             note: String
         }],
@@ -58,6 +69,7 @@ const sizeProfileSchema = mongoose.Schema(
             type: Number,
             default: 0,
         },
+        warnings: [String],
         status: {
             type: String,
             enum: ['DRAFT', 'AI_GENERATED', 'VERIFIED'],

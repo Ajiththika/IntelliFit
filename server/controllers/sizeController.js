@@ -5,7 +5,10 @@ const { trackEvent } = require('../utils/analytics');
 // @desc    Generate size profile
 // @route   POST /api/size/generate
 // @access  Private
-const generateSize = async (req, res) => {
+// @desc    Generate size estimation (Dry Run)
+// @route   POST /api/size/generate
+// @access  Private
+const generateSizing = async (req, res) => {
     const { gender, height, weight, age, wristSize, fitPreference } = req.body;
 
     if (!gender || !height || !weight || !age) {
@@ -23,23 +26,31 @@ const generateSize = async (req, res) => {
         fitPreference,
     });
 
-    // Analytics Context
-    const analyticsProps = {
-        gender,
-        confidence: estimation.confidence,
-        fit: fitPreference
-    };
+    // Return the estimation without saving
+    res.json(estimation);
+};
+
+// @desc    Save or Overwrite size profile
+// @route   POST /api/size/save
+// @access  Private
+const saveSizeProfile = async (req, res) => {
+    const { gender, height, weight, age, wristSize, fitPreference, bodyMeasurements, garmentMeasurements, confidence, measurementMeta, warnings } = req.body;
 
     // Check if profile exists
     let profile = await SizeProfile.findOne({ user: req.user._id });
 
+    // Analytics Context
+    const analyticsProps = { gender, confidence, fit: fitPreference };
+
     if (profile) {
         // Push current state to history before update
-        if (profile.calculatedSizes) {
+        if (profile.garmentMeasurements) {
             profile.history.push({
-                measurements: profile.calculatedSizes,
-                source: 'AI_GENERATED', // Or preserve previous source if we tracked it? For now, we are replacing, so this record becomes history.
-                timestamp: new Date()
+                bodyMeasurements: profile.bodyMeasurements,
+                garmentMeasurements: profile.garmentMeasurements,
+                source: profile.status === 'VERIFIED' ? 'MANUAL_EDIT' : 'AI_GENERATED',
+                timestamp: new Date(),
+                note: 'Archived before new generation save'
             });
         }
 
@@ -50,13 +61,15 @@ const generateSize = async (req, res) => {
         profile.age = age;
         profile.wristSize = wristSize;
         profile.fitPreference = fitPreference;
-        profile.calculatedSizes = estimation.measurements;
-        profile.measurementMeta = estimation.measurementMeta;
-        profile.confidenceScore = estimation.confidence;
+        profile.bodyMeasurements = bodyMeasurements;
+        profile.garmentMeasurements = garmentMeasurements;
+        profile.measurementMeta = measurementMeta;
+        profile.confidenceScore = confidence;
+        profile.warnings = warnings || [];
         profile.status = 'AI_GENERATED';
 
         const updatedProfile = await profile.save();
-        trackEvent('SIZE_GENERATED', req.user._id, { ...analyticsProps, action: 'update' }, req);
+        trackEvent('SIZE_SAVED', req.user._id, { ...analyticsProps, action: 'update' }, req);
         res.json(updatedProfile);
     } else {
         // Create new
@@ -68,63 +81,80 @@ const generateSize = async (req, res) => {
             age,
             wristSize,
             fitPreference,
-            calculatedSizes: estimation.measurements,
-            measurementMeta: estimation.measurementMeta,
-            confidenceScore: estimation.confidence,
+            bodyMeasurements,
+            garmentMeasurements,
+            measurementMeta,
+            confidenceScore: confidence,
+            warnings: warnings || [],
             status: 'AI_GENERATED',
-            history: [{
-                measurements: estimation.measurements,
-                source: 'AI_GENERATED',
-                timestamp: new Date(),
-                note: 'Initial Generation'
-            }]
+            history: [] // Initial creation, no history yet
         });
-        trackEvent('SIZE_GENERATED', req.user._id, { ...analyticsProps, action: 'create' }, req);
+        trackEvent('SIZE_SAVED', req.user._id, { ...analyticsProps, action: 'create' }, req);
         res.status(201).json(newProfile);
     }
 };
 
-// @desc    Update measurements manually
-// @route   PUT /api/size/manual
+// @desc    Update measurements manually (Patch)
+// @route   PATCH /api/size/update
 // @access  Private
-const updateManualMeasurements = async (req, res) => {
-    const { measurements } = req.body;
+const updateSizeProfile = async (req, res) => {
+    // Allows updating garmentMeasurements, bodyMeasurements, or fitPreference
+    const { garmentMeasurements, bodyMeasurements } = req.body;
 
     const profile = await SizeProfile.findOne({ user: req.user._id });
 
-    if (profile) {
-        // Push current state to history
-        if (profile.calculatedSizes) {
-            profile.history.push({
-                measurements: profile.calculatedSizes,
-                source: 'MANUAL_EDIT', // The state getting saved to history was what it was BEFORE this edit.
-                timestamp: new Date()
-            });
-        }
+    if (!profile) {
+        return res.status(404).json({ message: 'Profile not found.' });
+    }
 
-        profile.calculatedSizes = { ...profile.calculatedSizes, ...measurements };
+    // Push current state to history
+    profile.history.push({
+        bodyMeasurements: profile.bodyMeasurements,
+        garmentMeasurements: profile.garmentMeasurements,
+        source: 'MANUAL_EDIT',
+        timestamp: new Date(),
+        note: 'User manual update'
+    });
 
-        // Update metadata for changed fields
-        if (!profile.measurementMeta) profile.measurementMeta = new Map();
+    if (garmentMeasurements) {
+        profile.garmentMeasurements = { ...profile.garmentMeasurements, ...garmentMeasurements };
+    }
+    if (bodyMeasurements) {
+        profile.bodyMeasurements = { ...profile.bodyMeasurements, ...bodyMeasurements };
+    }
 
-        Object.keys(measurements).forEach(key => {
-            profile.measurementMeta.set(key, {
-                confidence: 100,
-                source: 'MANUAL'
-            });
+    profile.status = 'VERIFIED';
+
+    // Decrease confidence for manually edited fields? Or set to 100?
+    // Usually manual = 100% confidence it's what the user wants.
+    // Update meta...
+    if (!profile.measurementMeta) profile.measurementMeta = new Map();
+
+    const updates = { ...garmentMeasurements, ...bodyMeasurements };
+    Object.keys(updates).forEach(key => {
+        // We don't distinguish body vs garment in simple meta map currently, 
+        // relying on unique keys or shared keys (both have chest).
+        // For MVP, just marking the key as MANUAL.
+        profile.measurementMeta.set(key, {
+            confidence: 100,
+            source: 'MANUAL'
         });
+    });
 
-        profile.status = 'VERIFIED';
+    const updatedProfile = await profile.save();
+    trackEvent('SIZE_UPDATED', req.user._id, { action: 'manual_edit' }, req);
+    res.json(updatedProfile);
+};
 
-        // Add a history entry for the NEW manual state as well? 
-        // Typically history is "past". We update the current "live" one.
-        // But for tracking, maybe we want to know *that* a manual edit happened.
-        // Let's rely on the previous logic: history stores what was replaced.
-
-        const updatedProfile = await profile.save();
-        res.json(updatedProfile);
+// @desc    Get size profile history
+// @route   GET /api/size/history
+// @access  Private
+const getSizeHistory = async (req, res) => {
+    const profile = await SizeProfile.findOne({ user: req.user._id }, 'history');
+    if (profile) {
+        res.json(profile.history.sort((a, b) => b.timestamp - a.timestamp));
     } else {
-        res.status(404).json({ message: 'Profile not found. Please generate sizes first.' });
+        res.status(404).json({ message: 'Profile not found' });
     }
 };
 
@@ -137,7 +167,9 @@ const getSizeProfile = async (req, res) => {
 };
 
 module.exports = {
-    generateSize,
+    generateSizing,
+    saveSizeProfile,
+    updateSizeProfile,
     getSizeProfile,
-    updateManualMeasurements,
+    getSizeHistory
 };
