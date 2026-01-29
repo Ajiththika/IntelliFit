@@ -11,6 +11,6 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 router.post('/create-checkout-session', protect, createCheckoutSession);
 router.post('/create-order-session', protect, createOrderCheckoutSession);
 router.post('/mock-success', protect, mockPaymentSuccess);
-router.post('/release-funds', protect, authorize('admin', 'superadmin'), releaseFunds);
+router.post('/release-funds', protect, authorize('admin'), releaseFunds);
 
 module.exports = router;

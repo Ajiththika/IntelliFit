@@ -11,7 +11,7 @@ const {
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.use(protect);
-router.use(authorize('admin', 'superadmin'));
+router.use(authorize('admin'));
 
 router.get('/users', getAllUsers);
 router.put('/users/:id/suspend', suspendUser);

@@ -18,16 +18,16 @@ const userSchema = mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ['user', 'tailor', 'admin', 'superadmin'],
-            default: 'user',
+            enum: ['customer', 'tailor', 'admin'],
+            default: 'customer',
         },
         allowedRoles: {
             type: [String],
-            default: ['user'],
+            default: ['customer'],
         },
         roleRequest: {
             type: String,
-            enum: ['tailor', 'admin', 'superadmin'],
+            enum: ['tailor', 'admin'],
             default: null,
         },
         phone: {

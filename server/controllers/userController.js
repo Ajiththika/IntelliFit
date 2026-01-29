@@ -88,7 +88,7 @@ const requestRoleChange = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
-        if (!['tailor', 'admin', 'superadmin'].includes(role)) {
+        if (!['tailor', 'admin'].includes(role)) {
             res.status(400);
             throw new Error('Invalid role requested');
         }

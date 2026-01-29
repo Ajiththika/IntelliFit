@@ -43,8 +43,8 @@ const registerUser = async (req, res) => {
     }
 
     // Validate role is allowed (prevent admin creation via public API)
-    const allowedRoles = ['user', 'tailor'];
-    const userRole = (role && allowedRoles.includes(role)) ? role : 'user';
+    const allowedRoles = ['customer', 'tailor'];
+    const userRole = (role && allowedRoles.includes(role)) ? role : 'customer';
 
     const user = await User.create({
         name,

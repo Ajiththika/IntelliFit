@@ -36,10 +36,12 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
+const { protect } = require('../middleware/authMiddleware');
+
 // @desc    Upload an image
 // @route   POST /api/upload
-// @access  Public (or Private depending on needs, currently Public for simplicity)
-router.post('/', upload.single('image'), (req, res) => {
+// @access  Private
+router.post('/', protect, upload.single('image'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).send({ message: 'No file uploaded' });

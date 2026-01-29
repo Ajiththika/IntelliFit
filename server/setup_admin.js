@@ -25,8 +25,8 @@ const setupAdmin = async () => {
 
         if (user) {
             console.log('User found. Updating roles...');
-            user.role = 'superadmin';
-            const roles = new Set([...user.allowedRoles, 'user', 'admin', 'superadmin']);
+            user.role = 'admin';
+            const roles = new Set([...user.allowedRoles, 'customer', 'admin']);
             user.allowedRoles = Array.from(roles);
 
             // To ensure password matches what the user gave (in case it was different before), 
@@ -34,18 +34,18 @@ const setupAdmin = async () => {
             user.password = password;
 
             await user.save();
-            console.log('User updated to Superadmin successfully');
+            console.log('User updated to Admin successfully');
         } else {
-            console.log('User not found. Creating new Superadmin...');
+            console.log('User not found. Creating new Admin...');
             user = await User.create({
                 name: 'Main Admin',
                 email,
                 password,
-                role: 'superadmin',
-                allowedRoles: ['user', 'admin', 'superadmin'],
+                role: 'admin',
+                allowedRoles: ['customer', 'admin'],
                 isPremium: true
             });
-            console.log('Superadmin created successfully');
+            console.log('Admin created successfully');
         }
 
     } catch (error) {
