@@ -45,6 +45,10 @@ const tailorProfileSchema = mongoose.Schema(
         portfolioImages: [{
             type: String, // URLs
         }],
+        loc: {
+            type: { type: String, enum: ['Point'], default: 'Point' },
+            coordinates: { type: [Number], index: '2dsphere' } // [longitude, latitude]
+        }
     },
     {
         timestamps: true,

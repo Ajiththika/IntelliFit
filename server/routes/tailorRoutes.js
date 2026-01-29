@@ -3,8 +3,10 @@ const router = express.Router();
 const {
     createOrUpdateProfile,
     getTailors,
+    getTailors,
     getTailorById,
-    getTailorDashboardStats
+    getTailorDashboardStats,
+    getNearbyTailors
 } = require('../controllers/tailorController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -16,7 +18,10 @@ router.route('/me')
 
 router.route('/')
     .post(protect, authorize('tailor', 'admin'), createOrUpdateProfile) // Create/Update
+    .post(protect, authorize('tailor', 'admin'), createOrUpdateProfile) // Create/Update
     .get(getTailors); // List all
+
+router.get('/nearby', getNearbyTailors);
 
 router.route('/:id')
     .get(getTailorById); // Get one
