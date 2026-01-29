@@ -35,6 +35,9 @@ const Navbar = () => {
                     <Link to="/" className="text-sm font-medium transition-colors hover:text-primary">
                         Marketplace
                     </Link>
+                    <Link to="/messages" className="text-sm font-medium transition-colors hover:text-primary">
+                        Messages
+                    </Link>
                     <Link to="/" className="text-sm font-medium transition-colors hover:text-primary">
                         How it Works
                     </Link>

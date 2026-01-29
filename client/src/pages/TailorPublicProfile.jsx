@@ -146,6 +146,28 @@ const TailorPublicProfile = () => {
                                 </Button>
                             </motion.div>
 
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <Button
+                                    variant="secondary"
+                                    size="lg"
+                                    className="w-full md:w-56 h-12 text-md"
+                                    onClick={() => {
+                                        if (!user) {
+                                            navigate('/login', { state: { from: location } });
+                                        } else {
+                                            navigate('/messages', {
+                                                state: {
+                                                    startConversation: true,
+                                                    recipientId: tailor.user._id
+                                                }
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <MessageSquare className="mr-2 h-4 w-4" /> Message Tailor
+                                </Button>
+                            </motion.div>
+
                             {tailor.portfolioImages?.length > 0 && (
                                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                                     <Button variant="outline" size="lg" className="w-full md:w-56 h-12 text-md border-2 hover:bg-secondary/50" onClick={() => setShowPortfolio(true)}>
