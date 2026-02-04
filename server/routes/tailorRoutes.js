@@ -3,7 +3,6 @@ const router = express.Router();
 const {
     createOrUpdateProfile,
     getTailors,
-    getTailors,
     getTailorById,
     getTailorDashboardStats,
     getNearbyTailors
@@ -17,7 +16,6 @@ router.route('/me')
     .patch(protect, authorize('tailor', 'admin'), createOrUpdateProfile);
 
 router.route('/')
-    .post(protect, authorize('tailor', 'admin'), createOrUpdateProfile) // Create/Update
     .post(protect, authorize('tailor', 'admin'), createOrUpdateProfile) // Create/Update
     .get(getTailors); // List all
 

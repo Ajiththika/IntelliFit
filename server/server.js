@@ -36,6 +36,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/style-advisor', require('./routes/styleAdvisorRoutes'));
 app.use('/api/messages', require('./routes/messageRoutes'));
+app.use('/api/design', require('./routes/designRoutes'));
 
 
 app.get('/', (req, res) => {

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../../services/api';
 import { useAuth } from '../../context/authContext';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
 import { Loader2, MessageSquare, ArrowLeft, CheckCircle2, Circle, Clock, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 

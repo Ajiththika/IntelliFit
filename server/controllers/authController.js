@@ -8,9 +8,20 @@ const { trackEvent } = require('../utils/analytics');
 const authUser = async (req, res) => {
     const { email, password } = req.body;
 
+    console.log(`[Login Attempt] Email: ${email}`);
     const user = await User.findOne({ email });
 
-    if (user && (await user.matchPassword(password))) {
+    if (!user) {
+        console.log('[Login Failed] User not found');
+        return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    console.log(`[Login Info] User found: ${user._id}, Role: ${user.role}, Hash: ${user.password.substring(0, 10)}...`);
+
+    const isMatch = await user.matchPassword(password);
+    console.log(`[Login Info] Password match: ${isMatch}`);
+
+    if (isMatch) {
         if (user.isActive === false) {
             return res.status(403).json({ message: 'Account is suspended. Contact support.' });
         }
